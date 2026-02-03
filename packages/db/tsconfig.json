@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/schema": ["./src/schema.ts"]
+    }
+  },
+  "include": ["src", "drizzle.config.ts"]
+}

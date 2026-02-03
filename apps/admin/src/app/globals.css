@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #111827;
+  --color-slate: #e7eef6;
+  --color-lake: #1d4ed8;
+  --color-ember: #b45309;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate text-ink;
+}
+
+nav a {
+  @apply text-sm uppercase tracking-wide text-ink/70 hover:text-lake;
+}
+
+button {
+  @apply bg-clip-padding cursor-pointer;
+}
+
+button:disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+.bg-lake {
+  background-color: var(--color-lake) !important;
+}
+
+.bg-ink {
+  background-color: var(--color-ink) !important;
+}
+
+.input {
+  @apply w-full rounded-2xl border border-ink/10 bg-slate px-3 py-2 text-sm text-ink placeholder:text-ink/40;
+}

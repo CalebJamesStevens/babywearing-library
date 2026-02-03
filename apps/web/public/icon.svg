@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Babywearing Library">
+  <rect width="512" height="512" rx="96" fill="#4f46e5"/>
+  <path fill="#ffffff" d="M144 176h224v56H200v104h-56V176z"/>
+  <circle cx="320" cy="312" r="64" fill="#e0e7ff"/>
+</svg>

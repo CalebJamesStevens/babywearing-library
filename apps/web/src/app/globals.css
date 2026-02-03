@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #1f2937;
+  --color-sand: #f6f2ec;
+  --color-clay: #c57b57;
+  --color-moss: #6c8a5b;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-sand text-ink;
+}
+
+a {
+  @apply text-clay hover:text-moss;
+}
