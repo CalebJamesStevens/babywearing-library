@@ -125,7 +125,7 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
                   </a>
                 ) : null}
               </div>
-              <form action={updateInstance} className="grid gap-3">
+              <form action={updateInstance} className="grid gap-3" encType="multipart/form-data">
                 <input type="hidden" name="instanceId" value={active.id} />
                 <input type="hidden" name="carrierId" value={carrierId} />
                 <select name="status" defaultValue={active.status} className="input">
@@ -137,7 +137,17 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
                 <input name="location" defaultValue={active.location ?? ""} placeholder="Location" className="input" />
                 <input name="material" defaultValue={active.material ?? ""} placeholder="Material" className="input" />
                 <input name="colorPattern" defaultValue={active.colorPattern ?? ""} placeholder="Color / pattern" className="input" />
-                <input name="imageUrl" defaultValue={active.imageUrl ?? ""} placeholder="Image URL" className="input" />
+                <label className="grid gap-2 text-sm font-medium text-slate-900">
+                  Unit photo
+                  <input
+                    name="imageFile"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="input"
+                  />
+                </label>
+                <input name="imageUrl" defaultValue={active.imageUrl ?? ""} placeholder="Image URL (optional)" className="input" />
                 <textarea name="conditionNotes" defaultValue={active.conditionNotes ?? ""} placeholder="Condition notes" className="textarea h-20" />
                 <textarea name="issues" defaultValue={active.issues ?? ""} placeholder="Known issues" className="textarea h-20" />
                 <ActionButton className="btn-primary">

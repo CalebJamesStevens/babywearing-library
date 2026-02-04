@@ -67,12 +67,22 @@ export default function AddInventoryModal({ carrierId }: Props) {
             Add a physical unit for this carrier model.
           </p>
         </div>
-        <form action={formAction} className="grid gap-3 px-6 py-5">
+        <form action={formAction} className="grid gap-3 px-6 py-5" encType="multipart/form-data">
           <input type="hidden" name="carrierId" value={carrierId} />
           <input name="serialNumber" placeholder="Serial number" className="input" />
           <input name="material" placeholder="Material (optional)" className="input" />
           <input name="colorPattern" placeholder="Color / pattern (optional)" className="input" />
-          <input name="imageUrl" placeholder="Unit image URL" className="input" />
+          <label className="grid gap-2 text-sm font-medium text-slate-900">
+            Unit photo
+            <input
+              name="imageFile"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="input"
+            />
+          </label>
+          <input name="imageUrl" placeholder="Unit image URL (optional)" className="input" />
           <input name="location" placeholder="Storage location" className="input" />
           <textarea name="conditionNotes" placeholder="Condition notes" className="textarea h-20" />
           <textarea name="issues" placeholder="Known issues" className="textarea h-20" />

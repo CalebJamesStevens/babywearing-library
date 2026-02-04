@@ -27,7 +27,7 @@ export default function AddCarrierForm({ brandOptions, onSuccess }: Props) {
   }, [state.ok, onSuccess]);
 
   return (
-    <form action={formAction} className="mt-4 grid gap-3">
+    <form action={formAction} className="mt-4 grid gap-3" encType="multipart/form-data">
       <BrandSelect brands={brandOptions} />
       <select name="type" className="input">
         <option value="">Select type</option>
@@ -39,7 +39,17 @@ export default function AddCarrierForm({ brandOptions, onSuccess }: Props) {
         <option value="onbuhimo">Onbuhimo</option>
       </select>
       <input name="model" placeholder="Model" className="input" />
-      <input name="imageUrl" placeholder="Image URL" className="input" />
+      <label className="grid gap-2 text-sm font-medium text-slate-900">
+        Carrier photo
+        <input
+          name="imageFile"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="input"
+        />
+      </label>
+      <input name="imageUrl" placeholder="Image URL (optional)" className="input" />
       <input name="videoUrl" placeholder="Safety video URL" className="input" />
       <textarea name="description" placeholder="Description" className="textarea h-24" />
       <textarea name="safetyInfo" placeholder="Safety info" className="textarea h-20" />

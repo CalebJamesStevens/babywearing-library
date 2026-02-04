@@ -12,6 +12,7 @@
   "dependencies": {
     "@babywearing/db": "file:../../packages/db",
     "@neondatabase/auth": "^0.2.0-beta.1",
+    "@vercel/blob": "latest",
     "drizzle-orm": "0.45.1",
     "lucide-react": "0.563.0",
     "next": "16.1.6",

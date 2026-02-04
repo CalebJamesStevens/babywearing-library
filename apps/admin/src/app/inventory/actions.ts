@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { put } from "@vercel/blob";
 import { db, carrierInstances, carriers } from "@babywearing/db";
 import { eq } from "@babywearing/db";
 
@@ -8,6 +9,19 @@ type ActionState = {
   ok: boolean;
   error?: string;
 };
+
+async function uploadImage(
+  formData: FormData,
+  fieldName: string,
+  prefix: string
+) {
+  const file = formData.get(fieldName);
+  if (!(file instanceof File) || file.size === 0) return null;
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+  const filename = `${prefix}-${Date.now()}-${safeName}`;
+  const blob = await put(filename, file, { access: "public" });
+  return blob.url;
+}
 
 export async function createCarrier(
   _prevState: ActionState,
@@ -20,6 +34,10 @@ export async function createCarrier(
       return { ok: false, error: "Brand and type are required." };
     }
 
+    const uploadedUrl = await uploadImage(formData, "imageFile", "carrier");
+    const imageUrl =
+      uploadedUrl ?? String(formData.get("imageUrl") || "") || null;
+
     await db.insert(carriers).values({
       brand,
       type: type as
@@ -31,7 +49,7 @@ export async function createCarrier(
         | "onbuhimo",
       model: String(formData.get("model") || "") || null,
       description: String(formData.get("description") || "") || null,
-      imageUrl: String(formData.get("imageUrl") || "") || null,
+      imageUrl,
       videoUrl: String(formData.get("videoUrl") || "") || null,
       safetyInfo: String(formData.get("safetyInfo") || "") || null,
       safetyTests: String(formData.get("safetyTests") || "") || null,
@@ -52,6 +70,10 @@ export async function createInstance(formData: FormData) {
     const carrierId = String(formData.get("carrierId") || "");
     if (!carrierId) return;
 
+    const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
+    const imageUrl =
+      uploadedUrl ?? String(formData.get("imageUrl") || "") || null;
+
     await db.insert(carrierInstances).values({
       carrierId,
       status: "available",
@@ -61,7 +83,7 @@ export async function createInstance(formData: FormData) {
       conditionNotes: String(formData.get("conditionNotes") || "") || null,
       issues: String(formData.get("issues") || "") || null,
       location: String(formData.get("location") || "") || null,
-      imageUrl: String(formData.get("imageUrl") || "") || null,
+      imageUrl,
     });
 
     revalidatePath("/inventory");
@@ -82,6 +104,10 @@ export async function createInstanceWithState(
       return { ok: false, error: "Select a carrier model first." };
     }
 
+    const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
+    const imageUrl =
+      uploadedUrl ?? String(formData.get("imageUrl") || "") || null;
+
     await db.insert(carrierInstances).values({
       carrierId,
       status: "available",
@@ -91,7 +117,7 @@ export async function createInstanceWithState(
       conditionNotes: String(formData.get("conditionNotes") || "") || null,
       issues: String(formData.get("issues") || "") || null,
       location: String(formData.get("location") || "") || null,
-      imageUrl: String(formData.get("imageUrl") || "") || null,
+      imageUrl,
     });
 
     revalidatePath("/inventory");
@@ -109,6 +135,10 @@ export async function updateInstance(formData: FormData) {
     const carrierId = String(formData.get("carrierId") || "");
     if (!instanceId) return;
 
+    const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
+    const imageUrl =
+      uploadedUrl ?? String(formData.get("imageUrl") || "") || null;
+
     await db
       .update(carrierInstances)
       .set({
@@ -122,7 +152,7 @@ export async function updateInstance(formData: FormData) {
         colorPattern: String(formData.get("colorPattern") || "") || null,
         conditionNotes: String(formData.get("conditionNotes") || "") || null,
         location: String(formData.get("location") || "") || null,
-        imageUrl: String(formData.get("imageUrl") || "") || null,
+        imageUrl,
       })
       .where(eq(carrierInstances.id, instanceId));
 
