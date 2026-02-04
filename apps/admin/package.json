@@ -21,6 +21,7 @@
     "qrcode": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "ua-parser-js": "latest",
     "zod": "latest"
   },
   "devDependencies": {

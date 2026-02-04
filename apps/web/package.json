@@ -16,6 +16,7 @@
     "@babywearing/db": "workspace:*",
     "@neondatabase/auth": "latest",
     "drizzle-orm": "latest",
+    "ua-parser-js": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
