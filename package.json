@@ -3,21 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "npm run --workspaces --if-present dev",
-    "dev:web": "npm --workspace @babywearing/web run dev",
-    "dev:admin": "npm --workspace @babywearing/admin run dev",
-    "build": "npm run --workspaces --if-present build",
-    "build:web": "npm --workspace @babywearing/web run build",
-    "build:admin": "npm --workspace @babywearing/admin run build",
-    "lint": "npm run --workspaces --if-present lint",
-    "db:generate": "npm --workspace @babywearing/db run generate",
-    "db:migrate": "npm --workspace @babywearing/db run migrate",
-    "db:studio": "npm --workspace @babywearing/db run studio"
+    "dev": "npm -C apps/web run dev & npm -C apps/admin run dev",
+    "dev:web": "npm -C apps/web run dev",
+    "dev:admin": "npm -C apps/admin run dev",
+    "build": "npm -C apps/admin run build && npm -C apps/web run build",
+    "build:web": "npm -C apps/web run build",
+    "build:admin": "npm -C apps/admin run build",
+    "lint": "npm -C apps/admin run lint && npm -C apps/web run lint",
+    "db:generate": "npm -C packages/db run generate",
+    "db:migrate": "npm -C packages/db run migrate",
+    "db:studio": "npm -C packages/db run studio"
   },
   "dependencies": {
     "ua-parser-js": "2.0.9"
