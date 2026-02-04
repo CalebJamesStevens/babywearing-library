@@ -35,8 +35,8 @@ export async function createCarrier(
     }
 
     const uploadedUrl = await uploadImage(formData, "imageFile", "carrier");
-    const imageUrl =
-      uploadedUrl ?? String(formData.get("imageUrl") || "") || null;
+    const fallbackUrl = String(formData.get("imageUrl") || "").trim();
+    const imageUrl = uploadedUrl ?? (fallbackUrl || null);
 
     await db.insert(carriers).values({
       brand,
@@ -71,8 +71,8 @@ export async function createInstance(formData: FormData) {
     if (!carrierId) return;
 
     const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
-    const imageUrl =
-      uploadedUrl ?? String(formData.get("imageUrl") || "") || null;
+    const fallbackUrl = String(formData.get("imageUrl") || "").trim();
+    const imageUrl = uploadedUrl ?? (fallbackUrl || null);
 
     await db.insert(carrierInstances).values({
       carrierId,
@@ -105,8 +105,8 @@ export async function createInstanceWithState(
     }
 
     const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
-    const imageUrl =
-      uploadedUrl ?? String(formData.get("imageUrl") || "") || null;
+    const fallbackUrl = String(formData.get("imageUrl") || "").trim();
+    const imageUrl = uploadedUrl ?? (fallbackUrl || null);
 
     await db.insert(carrierInstances).values({
       carrierId,
@@ -136,8 +136,8 @@ export async function updateInstance(formData: FormData) {
     if (!instanceId) return;
 
     const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
-    const imageUrl =
-      uploadedUrl ?? String(formData.get("imageUrl") || "") || null;
+    const fallbackUrl = String(formData.get("imageUrl") || "").trim();
+    const imageUrl = uploadedUrl ?? (fallbackUrl || null);
 
     await db
       .update(carrierInstances)
