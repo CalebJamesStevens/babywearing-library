@@ -24,7 +24,7 @@ export async function GET(
     instance?.qrCodeValue ?? `${baseUrl}/carriers/${instanceId}`;
 
   const png = await QRCode.toBuffer(value, { width: 512, margin: 2 });
-  return new NextResponse(png, {
+  return new NextResponse(png as unknown as BodyInit, {
     headers: {
       "Content-Type": "image/png",
       "Cache-Control": "no-store",

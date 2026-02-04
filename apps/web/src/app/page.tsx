@@ -49,7 +49,7 @@ export default async function HomePage() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase text-slate-500">
-                      {row.carrierType
+                      {(row.carrierType ?? "carrier")
                         .replaceAll("_", " ")
                         .replace("meh dai", "meh dai /")}
                     </p>

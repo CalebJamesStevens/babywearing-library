@@ -162,7 +162,7 @@ export default async function CarrierDetailPage({ params }: PageProps) {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs uppercase text-slate-500">
-              {row.carrierType.replaceAll("_", " ").replace("meh dai", "meh dai /")}
+              {(row.carrierType ?? "carrier").replaceAll("_", " ").replace("meh dai", "meh dai /")}
             </p>
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
               {row.carrierBrand}

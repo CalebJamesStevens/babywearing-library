@@ -22,7 +22,13 @@ export async function createCarrier(
 
     await db.insert(carriers).values({
       brand,
-      type,
+      type: type as
+        | "soft_structured_carrier"
+        | "ring_sling"
+        | "woven_wrap"
+        | "stretch_wrap"
+        | "meh_dai_half_buckle"
+        | "onbuhimo",
       model: String(formData.get("model") || "") || null,
       description: String(formData.get("description") || "") || null,
       imageUrl: String(formData.get("imageUrl") || "") || null,

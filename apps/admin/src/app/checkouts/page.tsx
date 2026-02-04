@@ -154,7 +154,7 @@ export default async function CheckoutsPage() {
                 {checkout.status === "pending" ? (
                   <form action={approveCheckout} className="mt-4 grid gap-3 sm:grid-cols-2">
                     <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
-                    <input type="hidden" name="carrierInstanceId" value={checkout.carrierInstanceId} />
+                    <input type="hidden" name="carrierInstanceId" value={checkout.carrierInstanceId ?? ""} />
                     <input
                       name="approvedLengthDays"
                       type="number"
@@ -183,7 +183,7 @@ export default async function CheckoutsPage() {
                 {checkout.status === "approved" ? (
                   <form action={markReturned} className="mt-4 grid gap-3">
                     <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
-                    <input type="hidden" name="carrierInstanceId" value={checkout.carrierInstanceId} />
+                    <input type="hidden" name="carrierInstanceId" value={checkout.carrierInstanceId ?? ""} />
                     <textarea name="conditionAfter" placeholder="Condition after return" className="textarea h-20" />
                     <button className="btn-primary">
                       Mark returned
