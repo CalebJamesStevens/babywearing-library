@@ -24,7 +24,6 @@ export async function createCarrier(
       brand,
       type,
       model: String(formData.get("model") || "") || null,
-      material: String(formData.get("material") || "") || null,
       description: String(formData.get("description") || "") || null,
       imageUrl: String(formData.get("imageUrl") || "") || null,
       videoUrl: String(formData.get("videoUrl") || "") || null,
@@ -51,6 +50,8 @@ export async function createInstance(formData: FormData) {
       carrierId,
       status: "available",
       serialNumber: String(formData.get("serialNumber") || "") || null,
+      material: String(formData.get("material") || "") || null,
+      colorPattern: String(formData.get("colorPattern") || "") || null,
       conditionNotes: String(formData.get("conditionNotes") || "") || null,
       issues: String(formData.get("issues") || "") || null,
       location: String(formData.get("location") || "") || null,
@@ -58,15 +59,48 @@ export async function createInstance(formData: FormData) {
     });
 
     revalidatePath("/inventory");
+    revalidatePath(`/inventory/${carrierId}`);
   } catch (error) {
     console.error("createInstance failed", error);
     throw error;
   }
 }
 
+export async function createInstanceWithState(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const carrierId = String(formData.get("carrierId") || "");
+    if (!carrierId) {
+      return { ok: false, error: "Select a carrier model first." };
+    }
+
+    await db.insert(carrierInstances).values({
+      carrierId,
+      status: "available",
+      serialNumber: String(formData.get("serialNumber") || "") || null,
+      material: String(formData.get("material") || "") || null,
+      colorPattern: String(formData.get("colorPattern") || "") || null,
+      conditionNotes: String(formData.get("conditionNotes") || "") || null,
+      issues: String(formData.get("issues") || "") || null,
+      location: String(formData.get("location") || "") || null,
+      imageUrl: String(formData.get("imageUrl") || "") || null,
+    });
+
+    revalidatePath("/inventory");
+    revalidatePath(`/inventory/${carrierId}`);
+    return { ok: true };
+  } catch (error) {
+    console.error("createInstance failed", error);
+    return { ok: false, error: "Unable to add inventory. Try again." };
+  }
+}
+
 export async function updateInstance(formData: FormData) {
   try {
     const instanceId = String(formData.get("instanceId") || "");
+    const carrierId = String(formData.get("carrierId") || "");
     if (!instanceId) return;
 
     await db
@@ -78,6 +112,8 @@ export async function updateInstance(formData: FormData) {
           | "maintenance"
           | "retired",
         issues: String(formData.get("issues") || "") || null,
+        material: String(formData.get("material") || "") || null,
+        colorPattern: String(formData.get("colorPattern") || "") || null,
         conditionNotes: String(formData.get("conditionNotes") || "") || null,
         location: String(formData.get("location") || "") || null,
         imageUrl: String(formData.get("imageUrl") || "") || null,
@@ -85,6 +121,9 @@ export async function updateInstance(formData: FormData) {
       .where(eq(carrierInstances.id, instanceId));
 
     revalidatePath("/inventory");
+    if (carrierId) {
+      revalidatePath(`/inventory/${carrierId}`);
+    }
   } catch (error) {
     console.error("updateInstance failed", error);
     throw error;
@@ -94,6 +133,7 @@ export async function updateInstance(formData: FormData) {
 export async function generateQr(formData: FormData) {
   try {
     const instanceId = String(formData.get("instanceId") || "");
+    const carrierId = String(formData.get("carrierId") || "");
     if (!instanceId) return;
 
     const baseUrl = process.env.WEB_BASE_URL;
@@ -107,6 +147,9 @@ export async function generateQr(formData: FormData) {
       .where(eq(carrierInstances.id, instanceId));
 
     revalidatePath("/inventory");
+    if (carrierId) {
+      revalidatePath(`/inventory/${carrierId}`);
+    }
   } catch (error) {
     console.error("generateQr failed", error);
     throw error;

@@ -1,153 +1,138 @@
 import { db, members } from "@babywearing/db";
-import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/require-admin";
+import MembersGrid from "@/components/MembersGrid";
 
 export const dynamic = "force-dynamic";
+
+type NeonUserRow = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  created_at: Date | null;
+};
 
 export default async function MembersPage() {
   await requireAdmin();
   const memberRows = await db.select().from(members).orderBy(members.createdAt);
+  const candidates = await db.execute(
+    sql<{ table_schema: string; table_name: string }>`
+      select table_schema, table_name
+      from information_schema.tables
+      where table_name in ('users', 'user')
+        and table_schema not in ('pg_catalog', 'information_schema')
+      order by table_schema, table_name`
+  );
 
-  async function addMember(formData: FormData) {
-    "use server";
-    const userId = String(formData.get("userId") || "").trim();
-    if (!userId) return;
+  let neonUsers: { rows: NeonUserRow[] } = { rows: [] };
+  let sourceTable: string | null = null;
+  let sourceError: string | null = null;
+  for (const candidate of candidates.rows) {
+    try {
+      const columns = await db.execute(
+        sql<{ column_name: string }>`
+          select column_name
+          from information_schema.columns
+          where table_schema = ${candidate.table_schema}
+            and table_name = ${candidate.table_name}
+          order by ordinal_position`
+      );
+      const columnNames = columns.rows.map((col) => col.column_name);
+      const hasEmail = columnNames.includes("email");
+      const hasName = columnNames.includes("name");
+      const hasCreatedAt =
+        columnNames.includes("created_at") || columnNames.includes("createdAt");
+      const createdColumn = columnNames.includes("created_at")
+        ? `"created_at"`
+        : columnNames.includes("createdAt")
+        ? `"createdAt"`
+        : null;
+      const emailExpr = hasEmail ? `"email"` : "null as email";
+      const nameExpr = hasName ? `"name"` : "null as name";
+      const createdExpr = createdColumn ? `${createdColumn} as created_at` : "null as created_at";
 
-    await db.insert(members).values({
-      userId,
-      status: String(formData.get("status") || "active") as
-        | "active"
-        | "inactive"
-        | "expired"
-        | "suspended",
-      lastPaidAt: formData.get("lastPaidAt")
-        ? new Date(String(formData.get("lastPaidAt")))
-        : null,
-      paymentType: (String(formData.get("paymentType") || "") || null) as
-        | "cash"
-        | "card"
-        | "venmo"
-        | "paypal"
-        | "other"
-        | null,
-      contactEmail: String(formData.get("contactEmail") || "") || null,
-      contactPhone: String(formData.get("contactPhone") || "") || null,
-      notes: String(formData.get("notes") || "") || null,
-    });
-
-    revalidatePath("/members");
+      neonUsers = await db.execute(
+        sql.raw(
+          `select "id", ${emailExpr}, ${nameExpr}, ${createdExpr} from "${candidate.table_schema}"."${candidate.table_name}" order by ${createdColumn ?? "1"} desc nulls last`
+        ) as unknown as Parameters<typeof db.execute>[0]
+      );
+      sourceTable = `${candidate.table_schema}.${candidate.table_name}`;
+      break;
+    } catch (error) {
+      sourceError = error instanceof Error ? error.message : "Unknown error";
+      // try next candidate
+    }
   }
 
-  async function updateMember(formData: FormData) {
-    "use server";
-    const memberId = String(formData.get("memberId") || "");
-    if (!memberId) return;
+  const memberByUserId = new Map(memberRows.map((member) => [member.userId, member]));
+  const entries = neonUsers.rows.map((user) => {
+    const member = memberByUserId.get(user.id);
+    return {
+      user: {
+        id: user.id,
+        email: user.email ?? null,
+        name: user.name ?? null,
+        createdAt: user.created_at ? new Date(user.created_at).toISOString() : "",
+      },
+      member: member
+        ? {
+            status: member.status,
+            lastPaidAt: member.lastPaidAt ? new Date(member.lastPaidAt).toISOString().slice(0, 10) : null,
+            paymentType: member.paymentType ?? null,
+            contactEmail: member.contactEmail ?? null,
+            contactPhone: member.contactPhone ?? null,
+            notes: member.notes ?? null,
+          }
+        : undefined,
+    };
+  });
 
-    await db
-      .update(members)
-      .set({
-        status: String(formData.get("status") || "active") as
-          | "active"
-          | "inactive"
-          | "expired"
-          | "suspended",
-        lastPaidAt: formData.get("lastPaidAt")
-          ? new Date(String(formData.get("lastPaidAt")))
-          : null,
-        paymentType: (String(formData.get("paymentType") || "") || null) as
-          | "cash"
-          | "card"
-          | "venmo"
-          | "paypal"
-          | "other"
-          | null,
-        contactEmail: String(formData.get("contactEmail") || "") || null,
-        contactPhone: String(formData.get("contactPhone") || "") || null,
-        notes: String(formData.get("notes") || "") || null,
-      })
-      .where(eq(members.id, memberId));
-
-    revalidatePath("/members");
-  }
+  const requested = entries.filter((entry) => !entry.member);
+  const approved = entries.filter((entry) => entry.member);
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-ink">Members</h1>
-        <p className="mt-2 text-sm text-ink/60">
+    <div className="space-y-6">
+      <section className="card-lg">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Members</h1>
+        <p className="mt-2 text-sm text-slate-600">
           Track Neon users, membership status, and payment history.
         </p>
       </section>
 
-      <section className="rounded-3xl bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-ink">Add member</h2>
-        <form action={addMember} className="mt-4 grid gap-3 md:grid-cols-2">
-          <input name="userId" placeholder="Neon user id" className="input" />
-          <select name="status" className="input">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="expired">Expired</option>
-            <option value="suspended">Suspended</option>
-          </select>
-          <input name="lastPaidAt" type="date" className="input" />
-          <select name="paymentType" className="input">
-            <option value="">Payment type</option>
-            <option value="cash">Cash</option>
-            <option value="card">Card</option>
-            <option value="venmo">Venmo</option>
-            <option value="paypal">PayPal</option>
-            <option value="other">Other</option>
-          </select>
-          <input name="contactEmail" placeholder="Email" className="input" />
-          <input name="contactPhone" placeholder="Phone" className="input" />
-          <textarea name="notes" placeholder="Notes" className="input h-20 md:col-span-2" />
-          <button className="rounded-full bg-lake px-4 py-2 text-sm font-semibold text-white md:col-span-2">
-            Add member
-          </button>
-        </form>
+      <section className="card">
+        <h2 className="text-lg font-semibold text-slate-900">Requested members</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Tap a Neon Auth user to approve and fill out membership details.
+        </p>
+        <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          Neon Auth source: {sourceTable ?? "not found"} · candidates: {candidates.rows.length}
+          {candidates.rows.length ? (
+            <div className="mt-1 text-[11px] text-slate-500">
+              {candidates.rows.map((row) => `${row.table_schema}.${row.table_name}`).join(", ")}
+            </div>
+          ) : null}
+          {sourceError ? (
+            <div className="mt-1 text-[11px] text-rose-600">
+              {sourceError}
+            </div>
+          ) : null}
+        </div>
+        <div className="mt-4">
+          {requested.length === 0 ? (
+            <p className="text-sm text-slate-600">No new requests right now.</p>
+          ) : (
+            <MembersGrid entries={requested} />
+          )}
+        </div>
       </section>
 
-      <section className="rounded-3xl bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-ink">Current members</h2>
-        <div className="mt-4 space-y-4">
-          {memberRows.length === 0 ? (
-            <p className="text-sm text-ink/60">No members yet.</p>
+      <section className="card">
+        <h2 className="text-lg font-semibold text-slate-900">Approved members</h2>
+        <div className="mt-4">
+          {approved.length === 0 ? (
+            <p className="text-sm text-slate-600">No approved members yet.</p>
           ) : (
-            memberRows.map((member) => (
-              <div key={member.id} className="rounded-2xl border border-ink/10 p-4">
-                <p className="text-sm font-semibold text-ink">{member.userId}</p>
-                <form action={updateMember} className="mt-3 grid gap-3 md:grid-cols-2">
-                  <input type="hidden" name="memberId" value={member.id} />
-                  <select name="status" defaultValue={member.status} className="input">
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="expired">Expired</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
-                  <input
-                    name="lastPaidAt"
-                    type="date"
-                    defaultValue={member.lastPaidAt ? new Date(member.lastPaidAt).toISOString().slice(0, 10) : ""}
-                    className="input"
-                  />
-                  <select name="paymentType" defaultValue={member.paymentType ?? ""} className="input">
-                    <option value="">Payment type</option>
-                    <option value="cash">Cash</option>
-                    <option value="card">Card</option>
-                    <option value="venmo">Venmo</option>
-                    <option value="paypal">PayPal</option>
-                    <option value="other">Other</option>
-                  </select>
-                  <input name="contactEmail" defaultValue={member.contactEmail ?? ""} placeholder="Email" className="input" />
-                  <input name="contactPhone" defaultValue={member.contactPhone ?? ""} placeholder="Phone" className="input" />
-                  <textarea name="notes" defaultValue={member.notes ?? ""} placeholder="Notes" className="input h-20 md:col-span-2" />
-                  <button className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white md:col-span-2">
-                    Save updates
-                  </button>
-                </form>
-              </div>
-            ))
+            <MembersGrid entries={approved} />
           )}
         </div>
       </section>

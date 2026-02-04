@@ -1,134 +1,55 @@
 import { db, carrierInstances, carriers } from "@babywearing/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/require-admin";
-import { createCarrier, createInstance, generateQr, updateInstance } from "@/app/inventory/actions";
-import ActionButton from "@/components/ActionButton";
-import AddCarrierForm from "@/components/AddCarrierForm";
+import AddCarrierModal from "@/components/AddCarrierModal";
+import CarrierModelGrid from "@/components/CarrierModelGrid";
 
 export const dynamic = "force-dynamic";
 
 export default async function InventoryPage() {
   await requireAdmin();
-  const carrierRows = await db.select().from(carriers).orderBy(carriers.brand);
-  const brandOptions = Array.from(
-    new Set(
-      carrierRows
-        .map((carrier) => carrier.brand)
-        .filter((brand): brand is string => Boolean(brand))
-    )
-  );
-  const instanceRows = await db
+  const carrierRows = await db
     .select({
-      id: carrierInstances.id,
-      carrierId: carrierInstances.carrierId,
-      status: carrierInstances.status,
-      issues: carrierInstances.issues,
-      conditionNotes: carrierInstances.conditionNotes,
-      location: carrierInstances.location,
-      imageUrl: carrierInstances.imageUrl,
-      qrCodeValue: carrierInstances.qrCodeValue,
-      carrierBrand: carriers.brand,
-      carrierModel: carriers.model,
-      carrierMaterial: carriers.material,
-      carrierType: carriers.type,
+      id: carriers.id,
+      brand: carriers.brand,
+      model: carriers.model,
+      type: carriers.type,
+      imageUrl: carriers.imageUrl,
+      instanceCount: sql<number>`count(${carrierInstances.id})`.as("instance_count"),
     })
-    .from(carrierInstances)
-    .leftJoin(carriers, eq(carrierInstances.carrierId, carriers.id))
-    .orderBy(carriers.brand);
+    .from(carriers)
+    .leftJoin(carrierInstances, eq(carrierInstances.carrierId, carriers.id))
+    .groupBy(carriers.id)
+    .orderBy(carriers.brand, carriers.model);
+
+  const brandOptions = Array.from(
+    new Set(carrierRows.map((carrier) => carrier.brand).filter(Boolean))
+  );
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-ink">Inventory</h1>
-        <p className="mt-2 text-sm text-ink/60">
-          Add carriers, assign QR codes, and track condition notes.
-        </p>
-      </section>
-
-      <section className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-ink">Add carrier model</h2>
-          <AddCarrierForm brandOptions={brandOptions} />
-        </div>
-
-        <div className="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-ink">Add carrier instance</h2>
-          <form action={createInstance} className="mt-4 grid gap-2.5">
-            <select name="carrierId" className="input">
-              <option value="">Select carrier model</option>
-              {carrierRows.map((carrier) => (
-                <option key={carrier.id} value={carrier.id}>
-                  {carrier.brand} {carrier.model ? `· ${carrier.model}` : ""}
-                </option>
-              ))}
-            </select>
-            <input name="serialNumber" placeholder="Serial number" className="input" />
-            <input name="imageUrl" placeholder="Instance image URL" className="input" />
-            <input name="location" placeholder="Storage location" className="input" />
-            <textarea name="conditionNotes" placeholder="Condition notes" className="input h-20" />
-            <textarea name="issues" placeholder="Known issues" className="input h-20" />
-            <ActionButton className="rounded-full bg-lake px-4 py-2 text-sm font-semibold text-white">
-              Add instance
-            </ActionButton>
-          </form>
+    <div className="space-y-6">
+      <section className="card-lg">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Inventory</h1>
+            <p className="mt-2 text-sm text-slate-600">
+              Add carrier models, then manage individual inventory items per model.
+            </p>
+          </div>
+          <AddCarrierModal brandOptions={brandOptions} />
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-ink">Current inventory</h2>
-        <div className="mt-4 space-y-4">
-          {instanceRows.length === 0 ? (
-            <p className="text-sm text-ink/60">No instances yet.</p>
+      <section className="card">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">Carrier models</h2>
+          <p className="text-xs text-slate-500">Tap a model to manage inventory.</p>
+        </div>
+        <div className="mt-4 max-h-[70vh] overflow-y-auto pr-1">
+          {carrierRows.length === 0 ? (
+            <p className="text-sm text-slate-600">No carriers yet. Add your first model.</p>
           ) : (
-            instanceRows.map((instance) => (
-              <div key={instance.id} className="rounded-2xl border border-ink/10 p-4">
-                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-ink">
-                      {instance.carrierBrand} {instance.carrierModel ?? ""}
-                    </p>
-                    <p className="text-xs text-ink/60">
-                      {instance.carrierType}
-                      {instance.carrierMaterial ? ` · ${instance.carrierMaterial}` : ""} · {instance.id}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <form action={generateQr}>
-                      <input type="hidden" name="instanceId" value={instance.id} />
-                      <button className="rounded-full border border-ink/20 px-3 py-1 text-xs text-ink">
-                        Generate QR
-                      </button>
-                    </form>
-                    {instance.qrCodeValue ? (
-                      <a
-                        className="rounded-full bg-slate px-3 py-1 text-xs text-ink"
-                        href={`/api/qr/${instance.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        View QR
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-                <form action={updateInstance} className="mt-4 grid gap-3 md:grid-cols-2">
-                  <input type="hidden" name="instanceId" value={instance.id} />
-                  <select name="status" defaultValue={instance.status} className="input">
-                    <option value="available">Available</option>
-                    <option value="checked_out">Checked out</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="retired">Retired</option>
-                  </select>
-                  <input name="location" defaultValue={instance.location ?? ""} placeholder="Location" className="input" />
-                  <input name="imageUrl" defaultValue={instance.imageUrl ?? ""} placeholder="Image URL" className="input" />
-                  <textarea name="conditionNotes" defaultValue={instance.conditionNotes ?? ""} placeholder="Condition notes" className="input h-20" />
-                  <textarea name="issues" defaultValue={instance.issues ?? ""} placeholder="Known issues" className="input h-20" />
-                  <button className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
-                    Save updates
-                  </button>
-                </form>
-              </div>
-            ))
+            <CarrierModelGrid carriers={carrierRows} />
           )}
         </div>
       </section>

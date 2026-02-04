@@ -32,11 +32,11 @@ export default function BrandSelect({ name = "brand", brands }: Props) {
         ))}
       </datalist>
       {!normalized ? (
-        <p className="text-xs text-ink/40">Start typing to pick a brand.</p>
+        <p className="text-xs text-slate-500">Start typing to pick a brand.</p>
       ) : hasBrand ? (
-        <p className="text-xs text-ink/50">Existing brand</p>
+        <p className="text-xs text-slate-500">Existing brand</p>
       ) : (
-        <p className="text-xs text-ember">Create new brand</p>
+        <p className="text-xs text-amber-700">Create new brand</p>
       )}
     </div>
   );

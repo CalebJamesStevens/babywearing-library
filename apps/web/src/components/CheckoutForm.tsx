@@ -23,15 +23,11 @@ export function CheckoutForm({ action, disabled, available }: Props) {
       <textarea
         name="notes"
         placeholder="Notes for the librarian (fit preferences, dates, etc.)"
-        className="h-24 w-full rounded-xl border border-ink/10 bg-sand px-3 py-2 text-sm"
+        className="textarea h-24"
       />
       <button
         type="submit"
-        className={`w-full rounded-full px-4 py-2 text-sm font-semibold ${
-          available && !disabled
-            ? "bg-clay text-white"
-            : "cursor-not-allowed bg-ink/10 text-ink/40"
-        }`}
+        className="btn-primary w-full"
         disabled={disabled || !available || isPending}
       >
         {available ? (isPending ? "Submitting..." : "Request checkout") : "Unavailable"}

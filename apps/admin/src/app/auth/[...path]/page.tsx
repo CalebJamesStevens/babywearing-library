@@ -8,9 +8,9 @@ export default function AdminAuthCatchAll() {
   const path = params?.path;
   const pathname = Array.isArray(path) ? path[0] : path ?? "sign-in";
   return (
-    <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-semibold text-ink">Admin access</h1>
-      <p className="mt-3 text-sm text-ink/70">
+    <div className="card-lg max-w-lg">
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Admin access</h1>
+      <p className="mt-3 text-sm text-slate-600">
         Sign in with Neon Auth to continue.
       </p>
       <div className="mt-6">

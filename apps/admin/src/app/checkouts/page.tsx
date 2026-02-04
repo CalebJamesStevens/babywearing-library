@@ -106,41 +106,53 @@ export default async function CheckoutsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-ink">Checkouts</h1>
-        <p className="mt-2 text-sm text-ink/60">
+    <div className="space-y-6">
+      <section className="card-lg">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Checkouts</h1>
+        <p className="mt-2 text-sm text-slate-600">
           Approve requests, track due dates, and close returns.
         </p>
       </section>
 
-      <section className="rounded-3xl bg-white p-6 shadow-sm">
-        <div className="space-y-4">
+      <section className="card">
+        <div className="!border-t !border-slate-300">
           {checkoutRows.length === 0 ? (
-            <p className="text-sm text-ink/60">No checkout requests yet.</p>
+            <p className="py-4 text-sm text-slate-600">No checkout requests yet.</p>
           ) : (
             checkoutRows.map((checkout) => (
-              <div key={checkout.checkoutId} className="rounded-2xl border border-ink/10 p-4">
-                <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+              <details key={checkout.checkoutId} className="!border-b !border-slate-300 py-3">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-ink">
+                    <p className="text-sm font-semibold text-slate-900">
                       {checkout.carrierBrand} {checkout.carrierModel ?? ""}
                     </p>
-                    <p className="text-xs text-ink/60">
+                    <p className="text-xs text-slate-500">
                       {checkout.carrierType} · Member {checkout.memberUserId}
                     </p>
                   </div>
-                  <span className="text-xs uppercase text-ink/50">{checkout.status}</span>
-                </div>
+                  <span
+                    className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                      checkout.status === "pending"
+                        ? "bg-amber-50 text-amber-700"
+                        : checkout.status === "approved"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : checkout.status === "denied"
+                        ? "bg-rose-50 text-rose-700"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {checkout.status}
+                  </span>
+                </summary>
 
                 {checkout.requestedNotes ? (
-                  <p className="mt-2 text-sm text-ink/70">
+                  <p className="mt-3 text-sm text-slate-600">
                     Request notes: {checkout.requestedNotes}
                   </p>
                 ) : null}
 
                 {checkout.status === "pending" ? (
-                  <form action={approveCheckout} className="mt-4 grid gap-3 md:grid-cols-2">
+                  <form action={approveCheckout} className="mt-4 grid gap-3 sm:grid-cols-2">
                     <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
                     <input type="hidden" name="carrierInstanceId" value={checkout.carrierInstanceId} />
                     <input
@@ -150,9 +162,9 @@ export default async function CheckoutsPage() {
                       placeholder="Checkout length (days)"
                       className="input"
                     />
-                    <textarea name="conditionBefore" placeholder="Condition before checkout" className="input h-20" />
-                    <textarea name="adminNotes" placeholder="Admin notes" className="input h-20 md:col-span-2" />
-                    <button className="rounded-full bg-lake px-4 py-2 text-sm font-semibold text-white md:col-span-2">
+                    <textarea name="conditionBefore" placeholder="Condition before checkout" className="textarea h-20" />
+                    <textarea name="adminNotes" placeholder="Admin notes" className="textarea h-20 sm:col-span-2" />
+                    <button className="btn-primary sm:col-span-2">
                       Approve checkout
                     </button>
                   </form>
@@ -162,7 +174,7 @@ export default async function CheckoutsPage() {
                   <form action={denyCheckout} className="mt-3">
                     <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
                     <input name="adminNotes" placeholder="Reason for denial" className="input" />
-                    <button className="mt-2 rounded-full border border-ink/20 px-4 py-2 text-sm">
+                    <button className="btn-secondary mt-2">
                       Deny request
                     </button>
                   </form>
@@ -172,13 +184,13 @@ export default async function CheckoutsPage() {
                   <form action={markReturned} className="mt-4 grid gap-3">
                     <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
                     <input type="hidden" name="carrierInstanceId" value={checkout.carrierInstanceId} />
-                    <textarea name="conditionAfter" placeholder="Condition after return" className="input h-20" />
-                    <button className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
+                    <textarea name="conditionAfter" placeholder="Condition after return" className="textarea h-20" />
+                    <button className="btn-primary">
                       Mark returned
                     </button>
                   </form>
                 ) : null}
-              </div>
+              </details>
             ))
           )}
         </div>

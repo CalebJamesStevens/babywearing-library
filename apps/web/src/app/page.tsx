@@ -1,5 +1,6 @@
 import { db, carrierInstances, carriers, checkouts } from "@babywearing/db";
 import { and, eq } from "drizzle-orm";
+import HomeHero from "@/components/HomeHero";
 
 export const dynamic = "force-dynamic";
 
@@ -27,28 +28,12 @@ export default async function HomePage() {
     );
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold text-ink">
-              Explore babywearing carriers
-            </h1>
-            <p className="mt-2 text-ink/70">
-              Membership is $30/year and requires a consultation with our
-              educator or a library meetup visit.
-            </p>
-          </div>
-          <div className="rounded-2xl bg-sand px-5 py-3 text-sm text-ink/70">
-            Questions? Email your librarian after logging in to request a
-            checkout.
-          </div>
-        </div>
-      </section>
+    <div className="space-y-6">
+      <HomeHero />
 
-      <section className="grid gap-6 md:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2">
         {rows.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-ink/20 bg-white p-8 text-center text-ink/60">
+          <div className="card text-center text-slate-600">
             No carriers yet. Add inventory in the admin app.
           </div>
         ) : (
@@ -59,20 +44,20 @@ export default async function HomePage() {
             return (
               <article
                 key={row.instanceId}
-                className="rounded-2xl bg-white p-6 shadow-sm"
+                className="card"
               >
-                <div className="flex items-start justify-between gap-6">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-            <p className="text-xs uppercase text-ink/50">
-              {row.carrierType
-                .replaceAll("_", " ")
-                .replace("meh dai", "meh dai /")}
-            </p>
-                    <h2 className="text-xl font-semibold text-ink">
+                    <p className="text-xs uppercase text-slate-500">
+                      {row.carrierType
+                        .replaceAll("_", " ")
+                        .replace("meh dai", "meh dai /")}
+                    </p>
+                    <h2 className="text-lg font-semibold text-slate-900">
                       {row.carrierBrand}
                       {row.carrierModel ? ` ${row.carrierModel}` : ""}
                     </h2>
-                    <p className="mt-2 text-sm text-ink/60">
+                    <p className="mt-2 text-sm text-slate-600">
                       {available ? "Available now" : "Currently checked out"}
                     </p>
                     {row.issues ? (
@@ -83,10 +68,10 @@ export default async function HomePage() {
                   </div>
                   <div className="text-right">
                     <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
                         available
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-rose-100 text-rose-700"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-rose-50 text-rose-700"
                       }`}
                     >
                       {available ? "Available" : "Checked out"}
@@ -94,18 +79,18 @@ export default async function HomePage() {
                   </div>
                 </div>
                 {image ? (
-                  <div className="mt-4 overflow-hidden rounded-xl bg-sand">
+                  <div className="mt-4 overflow-hidden rounded-md border border-slate-200 bg-white">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={image}
                       alt={`${row.carrierBrand} ${row.carrierModel ?? ""}`}
-                      className="h-48 w-full object-cover"
+                      className="h-44 w-full object-cover"
                     />
                   </div>
                 ) : null}
-                <div className="mt-6">
+                <div className="mt-4 flex">
                   <a
-                    className="inline-flex items-center rounded-full border border-ink/20 px-4 py-2 text-sm text-ink"
+                    className="btn-secondary w-full justify-center"
                     href={`/carriers/${row.instanceId}`}
                   >
                     View details

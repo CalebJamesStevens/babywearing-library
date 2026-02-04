@@ -1,9 +1,18 @@
-const CACHE = "bw-admin-v1";
-const ASSETS = ["/", "/manifest.webmanifest", "/icon.svg"]; 
+const CACHE = "bw-admin-v2";
+const ASSETS = ["/manifest.webmanifest", "/icon.svg"]; 
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches
+      .open(CACHE)
+      .then((cache) =>
+        Promise.all(
+          ASSETS.map((asset) =>
+            cache.add(asset).catch(() => undefined)
+          )
+        )
+      )
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -17,6 +26,14 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth")) {
+    return;
+  }
+  if (event.request.mode === "navigate") {
+    event.respondWith(fetch(event.request));
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );

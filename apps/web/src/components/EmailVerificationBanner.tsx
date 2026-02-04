@@ -16,17 +16,19 @@ export default function EmailVerificationBanner() {
   if (!email || emailVerified) return null;
 
   return (
-    <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="card border-amber-200 bg-amber-50">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <p className="text-base font-semibold">Verify your email address</p>
-          <p className="text-sm text-amber-800/80">
+          <p className="text-sm font-semibold text-slate-900">
+            Verify your email address
+          </p>
+          <p className="text-sm text-slate-700">
             {email} is not verified yet. Check your inbox or resend the
             verification email.
           </p>
         </div>
         <button
-          className="rounded-full bg-amber-900 px-5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-800"
+          className="btn-secondary border-amber-200 text-slate-900 hover:bg-amber-100"
           disabled={status === "sending"}
           onClick={async () => {
             setStatus("sending");
@@ -42,19 +44,24 @@ export default function EmailVerificationBanner() {
             }
           }}
         >
-          {status === "sending" ? "Sending..." : "Resend verification"}
+          {status === "sending" ? "Sending..." : "Resend email"}
         </button>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
-        <input
-          value={otp}
-          onChange={(event) => setOtp(event.target.value)}
-          placeholder="Enter verification code"
-          className="w-full rounded-full border border-amber-200 bg-white px-4 py-2 text-sm text-amber-900 placeholder:text-amber-400"
-        />
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-slate-900">
+            Verification code
+          </label>
+          <input
+            value={otp}
+            onChange={(event) => setOtp(event.target.value)}
+            placeholder="Enter code"
+            className="input"
+          />
+        </div>
         <button
-          className="rounded-full bg-amber-700 px-5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-600"
+          className="btn-primary h-10 self-end"
           disabled={!otp || status === "verifying"}
           onClick={async () => {
             if (!otp) return;
@@ -79,18 +86,18 @@ export default function EmailVerificationBanner() {
       </div>
 
       {status === "sent" ? (
-        <p className="mt-3 text-xs text-amber-900">
+        <p className="mt-3 text-xs text-slate-600">
           Verification email sent. Check your inbox or spam folder.
         </p>
       ) : null}
       {status === "verified" ? (
-        <p className="mt-3 text-xs text-amber-900">
+        <p className="mt-3 text-xs text-emerald-700">
           Email verified. You may need to refresh to continue.
         </p>
       ) : null}
       {status === "error" ? (
-        <p className="mt-3 text-xs text-amber-900">
-          Something went wrong. Please try again later.
+        <p className="mt-3 text-xs text-rose-600">
+          Something went wrong. Please try again.
         </p>
       ) : null}
     </div>

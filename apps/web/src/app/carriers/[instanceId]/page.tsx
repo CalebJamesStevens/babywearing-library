@@ -7,24 +7,25 @@ import { auth } from "@/lib/auth/server";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: { instanceId: string };
+  params: Promise<{ instanceId: string }>;
 };
 
 export default async function CarrierDetailPage({ params }: PageProps) {
   const { data: session } = await auth.getSession();
-  const instanceId = params.instanceId;
+  const { instanceId } = await params;
 
   const [row] = await db
     .select({
       instanceId: carrierInstances.id,
       instanceStatus: carrierInstances.status,
       instanceImage: carrierInstances.imageUrl,
+      instanceMaterial: carrierInstances.material,
+      instanceColorPattern: carrierInstances.colorPattern,
       conditionNotes: carrierInstances.conditionNotes,
       issues: carrierInstances.issues,
       carrierBrand: carriers.brand,
       carrierType: carriers.type,
       carrierModel: carriers.model,
-      carrierMaterial: carriers.material,
       carrierDescription: carriers.description,
       carrierImage: carriers.imageUrl,
       videoUrl: carriers.videoUrl,
@@ -67,6 +68,21 @@ export default async function CarrierDetailPage({ params }: PageProps) {
     : [];
 
   const isActiveMember = member.length > 0 && member[0].status === "active";
+  const pendingRequest = isActiveMember
+    ? await db
+        .select({ id: checkouts.id })
+        .from(checkouts)
+        .where(
+          and(
+            eq(checkouts.carrierInstanceId, instanceId),
+            eq(checkouts.memberId, member[0].id),
+            eq(checkouts.status, "pending")
+          )
+        )
+        .limit(1)
+    : [];
+  const pendingRequestId = pendingRequest[0]?.id;
+  const hasPendingRequest = Boolean(pendingRequestId);
 
   const reviewRows = await db
     .select({
@@ -116,49 +132,78 @@ export default async function CarrierDetailPage({ params }: PageProps) {
     revalidatePath(`/carriers/${instanceId}`);
   }
 
+  async function cancelCheckout(formData: FormData) {
+    "use server";
+    const { data: session } = await auth.getSession();
+    if (!session?.user?.id) return;
+
+    const memberRows = await db
+      .select({ id: members.id })
+      .from(members)
+      .where(eq(members.userId, session.user.id))
+      .limit(1);
+
+    if (memberRows.length === 0) return;
+
+    const checkoutId = String(formData.get("checkoutId") || "");
+    if (!checkoutId) return;
+
+    await db
+      .update(checkouts)
+      .set({ status: "canceled" })
+      .where(eq(checkouts.id, checkoutId));
+
+    revalidatePath(`/carriers/${instanceId}`);
+  }
+
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl bg-white p-8 shadow-sm">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      <section className="card-lg">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs uppercase text-ink/50">
-              {row.carrierType}
+            <p className="text-xs uppercase text-slate-500">
+              {row.carrierType.replaceAll("_", " ").replace("meh dai", "meh dai /")}
             </p>
-            <h1 className="text-3xl font-semibold text-ink">
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
               {row.carrierBrand}
               {row.carrierModel ? ` ${row.carrierModel}` : ""}
             </h1>
-            {row.carrierMaterial ? (
-              <p className="mt-2 text-sm text-ink/60">
-                Material: {row.carrierMaterial}
+            {row.instanceMaterial ? (
+              <p className="mt-2 text-sm text-slate-600">
+                Material: {row.instanceMaterial}
               </p>
             ) : null}
-            <p className="mt-3 text-ink/70">{row.carrierDescription}</p>
+            {row.instanceColorPattern ? (
+              <p className="mt-1 text-sm text-slate-600">
+                Color / pattern: {row.instanceColorPattern}
+              </p>
+            ) : null}
+            <p className="mt-3 text-sm text-slate-600">{row.carrierDescription}</p>
             {row.issues ? (
-              <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Known issues: {row.issues}
               </p>
             ) : null}
             {row.conditionNotes ? (
-              <p className="mt-3 text-sm text-ink/60">
+              <p className="mt-3 text-sm text-slate-600">
                 Condition notes: {row.conditionNotes}
               </p>
             ) : null}
           </div>
-          <div className="rounded-2xl border border-ink/10 px-4 py-3 text-right">
-            <p className="text-xs uppercase text-ink/50">Status</p>
-            <p className="text-lg font-semibold text-ink">
+          <div className="rounded-md border border-slate-200 px-4 py-3 text-right">
+            <p className="text-xs uppercase text-slate-500">Status</p>
+            <p className="text-base font-semibold text-slate-900">
               {available ? "Available" : "Checked out"}
             </p>
           </div>
         </div>
         {(row.instanceImage || row.carrierImage) && (
-          <div className="mt-6 overflow-hidden rounded-2xl bg-sand">
+          <div className="mt-6 overflow-hidden rounded-md border border-slate-200 bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={row.instanceImage || row.carrierImage || ""}
               alt={`${row.carrierBrand} ${row.carrierModel ?? ""}`}
-              className="h-72 w-full object-cover"
+              className="h-64 w-full object-cover"
             />
           </div>
         )}
@@ -166,9 +211,9 @@ export default async function CarrierDetailPage({ params }: PageProps) {
 
       <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-ink">Safety guidance</h2>
-            <div className="mt-3 space-y-3 text-sm text-ink/70">
+          <div className="card">
+            <h2 className="text-lg font-semibold text-slate-900">Safety guidance</h2>
+            <div className="mt-3 space-y-3 text-sm text-slate-600">
               <p>{row.safetyInfo || "Safety information will be added soon."}</p>
               {row.safetyTests ? (
                 <p>Manufacturer tests: {row.safetyTests}</p>
@@ -180,21 +225,24 @@ export default async function CarrierDetailPage({ params }: PageProps) {
               )}
               {row.manufacturerUrl ? (
                 <p>
-                  Manufacturer: <a href={row.manufacturerUrl}>Visit site</a>
+                  Manufacturer:{" "}
+                  <a className="text-indigo-600 hover:text-indigo-700" href={row.manufacturerUrl}>
+                    Visit site
+                  </a>
                 </p>
               ) : null}
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-ink">Reviews</h2>
+          <div className="card">
+            <h2 className="text-lg font-semibold text-slate-900">Reviews</h2>
             {reviewRows.length === 0 ? (
-              <p className="mt-3 text-sm text-ink/60">No reviews yet.</p>
+              <p className="mt-3 text-sm text-slate-600">No reviews yet.</p>
             ) : (
-              <ul className="mt-4 space-y-4 text-sm text-ink/70">
+              <ul className="mt-4 space-y-3 text-sm text-slate-600">
                 {reviewRows.map((review) => (
-                  <li key={review.id} className="rounded-xl bg-sand px-4 py-3">
-                    <p className="font-medium text-ink">
+                  <li key={review.id} className="rounded-md border border-slate-200 bg-white px-4 py-3">
+                    <p className="font-medium text-slate-900">
                       {"★".repeat(review.rating)}
                     </p>
                     <p className="mt-1">{review.comment}</p>
@@ -206,30 +254,44 @@ export default async function CarrierDetailPage({ params }: PageProps) {
         </div>
 
         <aside className="space-y-6">
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-ink">Checkout</h2>
+          <div className="card">
+            <h2 className="text-lg font-semibold text-slate-900">Checkout</h2>
             {!session ? (
-              <p className="mt-3 text-sm text-ink/70">
+              <p className="mt-3 text-sm text-slate-600">
                 You must be a member and logged in to request a checkout.
               </p>
             ) : !isActiveMember ? (
-              <p className="mt-3 text-sm text-ink/70">
+              <p className="mt-3 text-sm text-slate-600">
                 Your membership is not active. Please update your membership to
                 request a checkout.
               </p>
+            ) : hasPendingRequest ? (
+              <div className="mt-3 space-y-3">
+                <p className="text-sm text-amber-700">
+                  Your request is being reviewed.
+                </p>
+                <form action={cancelCheckout}>
+                  <input type="hidden" name="checkoutId" value={pendingRequestId} />
+                  <button className="btn-secondary" type="submit">
+                    Cancel request
+                  </button>
+                </form>
+              </div>
             ) : null}
 
-            <CheckoutForm
-              action={requestCheckout}
-              available={available}
-              disabled={!session || !isActiveMember}
-            />
+            {hasPendingRequest ? null : (
+              <CheckoutForm
+                action={requestCheckout}
+                available={available}
+                disabled={!session || !isActiveMember}
+              />
+            )}
           </div>
 
           {row.videoUrl ? (
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-ink">How-to video</h2>
-              <div className="mt-4 aspect-video overflow-hidden rounded-xl bg-sand">
+            <div className="card">
+              <h2 className="text-lg font-semibold text-slate-900">How-to video</h2>
+              <div className="mt-4 aspect-video overflow-hidden rounded-md border border-slate-200 bg-white">
                 <iframe
                   src={row.videoUrl}
                   className="h-full w-full"

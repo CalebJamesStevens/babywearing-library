@@ -8,9 +8,11 @@ export default function WebAuthCatchAll() {
   const path = params?.path;
   const pathname = Array.isArray(path) ? path[0] : path ?? "sign-in";
   return (
-    <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-semibold text-ink">Member access</h1>
-      <p className="mt-3 text-sm text-ink/70">
+    <div className="card-lg max-w-lg">
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+        Member access
+      </h1>
+      <p className="mt-3 text-sm text-slate-600">
         Sign in with Neon Auth to request a carrier checkout.
       </p>
       <div className="mt-6">
@@ -18,7 +20,7 @@ export default function WebAuthCatchAll() {
       </div>
       <a
         href="/"
-        className="mt-6 block rounded-full border border-ink/20 px-4 py-2 text-center text-sm text-ink"
+        className="btn-secondary mt-6 w-full"
       >
         Back to library
       </a>

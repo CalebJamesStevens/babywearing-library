@@ -4,9 +4,9 @@ import { AuthView } from "@neondatabase/auth/react";
 
 export default function AdminLoginPage() {
   return (
-    <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-semibold text-ink">Admin login</h1>
-      <p className="mt-3 text-sm text-ink/70">
+    <div className="card-lg max-w-lg">
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Admin login</h1>
+      <p className="mt-3 text-sm text-slate-600">
         Neon Auth will confirm your admin role before you can access the
         dashboard.
       </p>
