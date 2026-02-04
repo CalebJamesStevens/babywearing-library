@@ -2,7 +2,6 @@
   "name": "@babywearing/admin",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.2.0",
   "engines": {
     "node": "20.x"
   },

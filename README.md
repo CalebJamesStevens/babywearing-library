@@ -11,9 +11,9 @@ Monorepo with a public library app and a separate admin app.
 ## Setup
 
 1. Copy `.env.example` to `.env.local` at the repo root and fill in values.
-2. Install dependencies with `pnpm install`.
-3. Run `pnpm db:generate` and `pnpm db:migrate` to create tables.
-4. Start dev servers with `pnpm dev`.
+2. Install dependencies with `npm install`.
+3. Run `npm run db:generate` and `npm run db:migrate` to create tables.
+4. Start dev servers with `npm run dev`.
 
 ## Environment variables
 
