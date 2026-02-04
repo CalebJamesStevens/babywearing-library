@@ -16,6 +16,7 @@
     "db:studio": "npm -C packages/db run studio"
   },
   "dependencies": {
+    "@neondatabase/auth": "^0.2.0-beta.1",
     "ua-parser-js": "2.0.9"
   },
   "keywords": [],
