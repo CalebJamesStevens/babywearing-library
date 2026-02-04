@@ -1,5 +1,5 @@
 import "server-only";
-import { createNeonAuth } from "@neondatabase/auth/next/server";
+import { createAuthServer } from "@neondatabase/auth/next/server";
 
 const baseUrl = process.env.NEON_AUTH_BASE_URL;
 const cookieSecret = process.env.NEON_AUTH_COOKIE_SECRET;
@@ -12,9 +12,4 @@ if (!cookieSecret) {
   throw new Error("NEON_AUTH_COOKIE_SECRET is not set");
 }
 
-export const auth = createNeonAuth({
-  baseUrl,
-  cookies: {
-    secret: cookieSecret,
-  },
-});
+export const auth = createAuthServer();
