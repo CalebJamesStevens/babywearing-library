@@ -1,5 +1,5 @@
 import { db, carrierInstances, carriers, checkouts, members, reviews } from "@babywearing/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq } from "@babywearing/db";
 import { revalidatePath } from "next/cache";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { auth } from "@/lib/auth/server";

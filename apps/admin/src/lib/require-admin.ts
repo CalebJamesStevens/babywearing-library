@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/server";
 import { db } from "@babywearing/db";
-import { sql } from "drizzle-orm";
+import { sql } from "@babywearing/db";
 
 const ADMIN_ROLE = process.env.ADMIN_ROLE ?? "admin";
 

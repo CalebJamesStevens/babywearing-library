@@ -1,5 +1,5 @@
 import { db, carrierInstances, carriers } from "@babywearing/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql } from "@babywearing/db";
 import { requireAdmin } from "@/lib/require-admin";
 import AddCarrierModal from "@/components/AddCarrierModal";
 import CarrierModelGrid from "@/components/CarrierModelGrid";

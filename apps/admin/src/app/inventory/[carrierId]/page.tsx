@@ -1,5 +1,5 @@
 import { db, carrierInstances, carriers } from "@babywearing/db";
-import { eq } from "drizzle-orm";
+import { eq } from "@babywearing/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/require-admin";

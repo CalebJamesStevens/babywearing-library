@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import { db, carrierInstances } from "@babywearing/db";
-import { eq } from "drizzle-orm";
+import { eq } from "@babywearing/db";
 
 export const dynamic = "force-dynamic";
 

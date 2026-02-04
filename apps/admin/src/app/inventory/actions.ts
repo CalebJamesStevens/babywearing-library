@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db, carrierInstances, carriers } from "@babywearing/db";
-import { eq } from "drizzle-orm";
+import { eq } from "@babywearing/db";
 
 type ActionState = {
   ok: boolean;

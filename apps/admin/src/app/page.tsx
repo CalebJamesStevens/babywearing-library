@@ -1,6 +1,6 @@
 import { db, carrierInstances, carriers, checkouts } from "@babywearing/db";
 import { requireAdmin } from "@/lib/require-admin";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql } from "@babywearing/db";
 
 export const dynamic = "force-dynamic";
 

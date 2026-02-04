@@ -1,5 +1,5 @@
 import { db, carrierInstances, carriers, checkouts } from "@babywearing/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq } from "@babywearing/db";
 import HomeHero from "@/components/HomeHero";
 
 export const dynamic = "force-dynamic";

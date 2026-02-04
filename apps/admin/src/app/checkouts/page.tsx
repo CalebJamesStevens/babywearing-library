@@ -5,7 +5,7 @@ import {
   db,
   members,
 } from "@babywearing/db";
-import { eq } from "drizzle-orm";
+import { eq } from "@babywearing/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/require-admin";
 

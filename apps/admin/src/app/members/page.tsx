@@ -1,5 +1,5 @@
 import { db, members } from "@babywearing/db";
-import { sql } from "drizzle-orm";
+import { sql } from "@babywearing/db";
 import { requireAdmin } from "@/lib/require-admin";
 import MembersGrid from "@/components/MembersGrid";
 
