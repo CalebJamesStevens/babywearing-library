@@ -67,7 +67,7 @@ export default function AddInventoryModal({ carrierId }: Props) {
             Add a physical unit for this carrier model.
           </p>
         </div>
-        <form action={formAction} className="grid gap-3 px-6 py-5" encType="multipart/form-data">
+        <form action={formAction} className="grid gap-3 px-6 py-5">
           <input type="hidden" name="carrierId" value={carrierId} />
           <input name="serialNumber" placeholder="Serial number" className="input" />
           <input name="material" placeholder="Material (optional)" className="input" />

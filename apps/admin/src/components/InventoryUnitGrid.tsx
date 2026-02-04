@@ -53,7 +53,12 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {instances.map((instance) => (
+        {instances.map((instance, index) => {
+          const primaryLabel =
+            instance.colorPattern?.trim() ||
+            instance.material?.trim() ||
+            `Unit ${index + 1}`;
+          return (
           <button
             type="button"
             key={instance.id}
@@ -76,7 +81,7 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
               )}
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-slate-900">
-                  Unit {instance.serialNumber ? `· ${instance.serialNumber}` : instance.id.slice(0, 8)}
+                  {primaryLabel}
                 </p>
                 <p className="text-xs text-slate-500">
                   Status: {instance.status.replace("_", " ")}
@@ -90,7 +95,8 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
               </div>
             </div>
           </button>
-        ))}
+        );
+        })}
       </div>
 
       <dialog
@@ -125,7 +131,7 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
                   </a>
                 ) : null}
               </div>
-              <form action={updateInstance} className="grid gap-3" encType="multipart/form-data">
+              <form action={updateInstance} className="grid gap-3">
                 <input type="hidden" name="instanceId" value={active.id} />
                 <input type="hidden" name="carrierId" value={carrierId} />
                 <select name="status" defaultValue={active.status} className="input">

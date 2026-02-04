@@ -27,7 +27,7 @@ export default function AddCarrierForm({ brandOptions, onSuccess }: Props) {
   }, [state.ok, onSuccess]);
 
   return (
-    <form action={formAction} className="mt-4 grid gap-3" encType="multipart/form-data">
+    <form action={formAction} className="mt-4 grid gap-3">
       <BrandSelect brands={brandOptions} />
       <select name="type" className="input">
         <option value="">Select type</option>
