@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/require-admin";
 import AddInventoryModal from "@/components/AddInventoryModal";
+import EditCarrierModal from "@/components/EditCarrierModal";
 import InventoryUnitGrid from "@/components/InventoryUnitGrid";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,9 @@ export default async function InventoryCarrierPage({ params }: PageProps) {
             <p className="mt-2 text-sm text-slate-600">
               {instances.length} units in inventory
             </p>
+            <div className="mt-3">
+              <EditCarrierModal carrier={carrier} />
+            </div>
           </div>
           {carrier.imageUrl ? (
             <div className="h-28 w-28 overflow-hidden rounded-md border border-slate-200 bg-slate-50">

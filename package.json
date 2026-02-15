@@ -4,7 +4,8 @@
   "description": "",
   "private": true,
   "scripts": {
-    "dev": "npm -C apps/web run dev & npm -C apps/admin run dev",
+    "dev": "node scripts/dev-all.mjs",
+    "dev:all": "node scripts/dev-all.mjs",
     "dev:web": "npm -C apps/web run dev",
     "dev:admin": "npm -C apps/admin run dev",
     "build": "npm -C apps/admin run build && npm -C apps/web run build",

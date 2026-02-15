@@ -166,6 +166,49 @@ export async function updateInstance(formData: FormData) {
   }
 }
 
+export async function updateCarrier(formData: FormData) {
+  try {
+    const carrierId = String(formData.get("carrierId") || "");
+    if (!carrierId) return;
+
+    const brand = String(formData.get("brand") || "").trim();
+    const type = String(formData.get("type") || "").trim();
+    if (!brand || !type) return;
+
+    const uploadedUrl = await uploadImage(formData, "imageFile", "carrier");
+    const fallbackUrl = String(formData.get("imageUrl") || "").trim();
+    const imageUrl = uploadedUrl ?? (fallbackUrl || null);
+
+    await db
+      .update(carriers)
+      .set({
+        brand,
+        type: type as
+          | "soft_structured_carrier"
+          | "ring_sling"
+          | "woven_wrap"
+          | "stretch_wrap"
+          | "meh_dai_half_buckle"
+          | "onbuhimo",
+        model: String(formData.get("model") || "").trim() || null,
+        description: String(formData.get("description") || "").trim() || null,
+        imageUrl,
+        videoUrl: String(formData.get("videoUrl") || "").trim() || null,
+        safetyInfo: String(formData.get("safetyInfo") || "").trim() || null,
+        safetyTests: String(formData.get("safetyTests") || "").trim() || null,
+        recallInfo: String(formData.get("recallInfo") || "").trim() || null,
+        manufacturerUrl: String(formData.get("manufacturerUrl") || "").trim() || null,
+      })
+      .where(eq(carriers.id, carrierId));
+
+    revalidatePath("/inventory");
+    revalidatePath(`/inventory/${carrierId}`);
+  } catch (error) {
+    console.error("updateCarrier failed", error);
+    throw error;
+  }
+}
+
 export async function generateQr(formData: FormData) {
   try {
     const instanceId = String(formData.get("instanceId") || "");

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useActionState } from "react";
+import { createPortal } from "react-dom";
 import ActionButton from "@/components/ActionButton";
 import { createInstanceWithState } from "@/app/inventory/actions";
 
@@ -19,6 +20,8 @@ const initialState: FormState = { ok: false };
 export default function AddInventoryModal({ carrierId }: Props) {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const [state, formAction] = useActionState(createInstanceWithState, initialState);
+  const [mounted, setMounted] = useState(false);
+  const [hideTrigger, setHideTrigger] = useState(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -38,11 +41,25 @@ export default function AddInventoryModal({ carrierId }: Props) {
     }
   }, [state.ok]);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const onModalState = (event: Event) => {
+      const customEvent = event as CustomEvent<{ open?: boolean }>;
+      setHideTrigger(Boolean(customEvent.detail?.open));
+    };
+    window.addEventListener("edit-carrier-modal-state", onModalState);
+    return () => window.removeEventListener("edit-carrier-modal-state", onModalState);
+  }, []);
+
+  const triggerButtons = (
     <>
       <button
         type="button"
-        className="btn-primary fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-full px-6 shadow-md sm:hidden"
+        className="btn-primary fixed bottom-20 left-1/2 z-[1000] -translate-x-1/2 rounded-full px-6 shadow-md sm:hidden"
+        style={{ zIndex: 2147483647 }}
         onClick={() => dialogRef.current?.showModal()}
         aria-label="Add inventory unit"
       >
@@ -51,11 +68,18 @@ export default function AddInventoryModal({ carrierId }: Props) {
 
       <button
         type="button"
-        className="btn-primary hidden sm:inline-flex"
+        className="btn-primary fixed bottom-6 right-6 z-[1000] hidden sm:inline-flex"
+        style={{ zIndex: 2147483647 }}
         onClick={() => dialogRef.current?.showModal()}
       >
         Add inventory
       </button>
+    </>
+  );
+
+  return (
+    <>
+      {mounted && !hideTrigger ? createPortal(triggerButtons, document.body) : null}
 
       <dialog
         ref={dialogRef}
