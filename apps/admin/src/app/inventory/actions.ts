@@ -234,3 +234,21 @@ export async function generateQr(formData: FormData) {
     throw error;
   }
 }
+
+export async function deleteInstance(formData: FormData) {
+  try {
+    const instanceId = String(formData.get("instanceId") || "");
+    const carrierId = String(formData.get("carrierId") || "");
+    if (!instanceId) return;
+
+    await db.delete(carrierInstances).where(eq(carrierInstances.id, instanceId));
+
+    revalidatePath("/inventory");
+    if (carrierId) {
+      revalidatePath(`/inventory/${carrierId}`);
+    }
+  } catch (error) {
+    console.error("deleteInstance failed", error);
+    throw error;
+  }
+}

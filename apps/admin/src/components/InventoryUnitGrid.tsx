@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import ActionButton from "@/components/ActionButton";
-import { generateQr, updateInstance } from "@/app/inventory/actions";
+import { deleteInstance, generateQr, updateInstance } from "@/app/inventory/actions";
 
 type Instance = {
   id: string;
+  carrierId: string;
   status: string;
   serialNumber: string | null;
   material: string | null;
@@ -15,40 +16,26 @@ type Instance = {
   conditionNotes: string | null;
   issues: string | null;
   qrCodeValue: string | null;
+  brand?: string | null;
+  model?: string | null;
+  type?: string;
 };
 
 type Props = {
-  carrierId: string;
   instances: Instance[];
 };
 
-export default function InventoryUnitGrid({ carrierId, instances }: Props) {
-  const dialogRef = useRef<HTMLDialogElement | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
+const typeLabels: Record<string, string> = {
+  soft_structured_carrier: "Soft structured carrier",
+  ring_sling: "Ring sling",
+  woven_wrap: "Woven wrap",
+  stretch_wrap: "Stretch wrap",
+  meh_dai_half_buckle: "Meh dai / half buckle",
+  onbuhimo: "Onbuhimo",
+};
 
-  const active = useMemo(
-    () => instances.find((instance) => instance.id === activeId) ?? null,
-    [activeId, instances]
-  );
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    const onClick = (event: MouseEvent) => {
-      if (event.target === dialog) {
-        dialog.close();
-        setActiveId(null);
-      }
-    };
-    dialog.addEventListener("click", onClick);
-    return () => dialog.removeEventListener("click", onClick);
-  }, []);
-
-  useEffect(() => {
-    if (activeId) {
-      dialogRef.current?.showModal();
-    }
-  }, [activeId]);
+export default function InventoryUnitGrid({ instances }: Props) {
+  const [active, setActive] = useState<Instance | null>(null);
 
   return (
     <>
@@ -59,52 +46,67 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
             instance.material?.trim() ||
             `Unit ${index + 1}`;
           return (
-          <button
-            type="button"
-            key={instance.id}
-            className="card text-left transition-colors hover:border-slate-300"
-            onClick={() => setActiveId(instance.id)}
-          >
-            <div className="space-y-3">
-              {instance.imageUrl ? (
-                <div className="h-28 w-full overflow-hidden rounded-md border border-slate-200 bg-slate-50">
-                  <img
-                    src={instance.imageUrl}
-                    alt={`Unit ${instance.serialNumber ?? instance.id}`}
-                    className="h-full w-full object-cover"
-                  />
+            <button
+              type="button"
+              key={instance.id}
+              className="card text-left transition-colors hover:border-slate-300"
+              onClick={() => setActive(instance)}
+            >
+              <div className="space-y-3">
+                {instance.imageUrl ? (
+                  <div className="h-28 w-full overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+                    <img
+                      src={instance.imageUrl}
+                      alt={`Unit ${instance.serialNumber ?? instance.id}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-28 w-full items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-xs text-slate-500">
+                    No image
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-900">
+                    {primaryLabel}
+                  </p>
+                  {instance.brand ? (
+                    <p className="text-xs text-slate-500">
+                      {instance.brand}
+                      {instance.model ? ` · ${instance.model}` : ""}
+                    </p>
+                  ) : null}
+                  {instance.type ? (
+                    <p className="text-xs text-slate-500">
+                      {typeLabels[instance.type] ?? instance.type}
+                    </p>
+                  ) : null}
+                  <p className="text-xs text-slate-500">
+                    Status: {instance.status.replace("_", " ")}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {instance.material ? `Material: ${instance.material}` : "Material: —"}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {instance.colorPattern ? `Color/Pattern: ${instance.colorPattern}` : "Color/Pattern: —"}
+                  </p>
                 </div>
-              ) : (
-                <div className="flex h-28 w-full items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-xs text-slate-500">
-                  No image
-                </div>
-              )}
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-900">
-                  {primaryLabel}
-                </p>
-                <p className="text-xs text-slate-500">
-                  Status: {instance.status.replace("_", " ")}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {instance.material ? `Material: ${instance.material}` : "Material: —"}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {instance.colorPattern ? `Color/Pattern: ${instance.colorPattern}` : "Color/Pattern: —"}
-                </p>
               </div>
-            </div>
-          </button>
-        );
+            </button>
+          );
         })}
       </div>
 
-      <dialog
-        ref={dialogRef}
-        className="w-full max-w-xl rounded-lg border border-slate-200 bg-white p-0 shadow-md"
-      >
-        {active ? (
-          <>
+      {active ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setActive(null);
+            }
+          }}
+        >
+          <div className="w-full max-w-xl rounded-lg border border-slate-200 bg-white p-0 shadow-md">
             <div className="border-b border-slate-200 px-6 py-4">
               <h2 className="text-lg font-semibold text-slate-900">
                 Unit {active.serialNumber ? `· ${active.serialNumber}` : active.id.slice(0, 8)}
@@ -117,7 +119,7 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
               <div className="flex flex-wrap gap-2">
                 <form action={generateQr}>
                   <input type="hidden" name="instanceId" value={active.id} />
-                  <input type="hidden" name="carrierId" value={carrierId} />
+                  <input type="hidden" name="carrierId" value={active.carrierId} />
                   <button className="btn-secondary">Generate QR</button>
                 </form>
                 {active.qrCodeValue ? (
@@ -133,7 +135,7 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
               </div>
               <form action={updateInstance} className="grid gap-3">
                 <input type="hidden" name="instanceId" value={active.id} />
-                <input type="hidden" name="carrierId" value={carrierId} />
+                <input type="hidden" name="carrierId" value={active.carrierId} />
                 <select name="status" defaultValue={active.status} className="input">
                   <option value="available">Available</option>
                   <option value="checked_out">Checked out</option>
@@ -162,20 +164,34 @@ export default function InventoryUnitGrid({ carrierId, instances }: Props) {
               </form>
             </div>
             <div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4">
+              <form
+                action={deleteInstance}
+                className="mr-auto"
+                onSubmit={(event) => {
+                  if (!window.confirm("Delete this carrier instance? This cannot be undone.")) {
+                    event.preventDefault();
+                  }
+                }}
+              >
+                <input type="hidden" name="instanceId" value={active.id} />
+                <input type="hidden" name="carrierId" value={active.carrierId} />
+                <ActionButton className="btn-secondary border-rose-200 text-rose-700 hover:bg-rose-50">
+                  Delete instance
+                </ActionButton>
+              </form>
               <button
                 type="button"
                 className="btn-secondary"
                 onClick={() => {
-                  dialogRef.current?.close();
-                  setActiveId(null);
+                  setActive(null);
                 }}
               >
                 Close
               </button>
             </div>
-          </>
-        ) : null}
-      </dialog>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

@@ -92,7 +92,7 @@ export default async function InventoryCarrierPage({ params }: PageProps) {
           {instances.length === 0 ? (
             <p className="text-sm text-slate-600">No units yet.</p>
           ) : (
-            <InventoryUnitGrid carrierId={carrierId} instances={instances} />
+            <InventoryUnitGrid instances={instances} />
           )}
         </div>
       </section>
