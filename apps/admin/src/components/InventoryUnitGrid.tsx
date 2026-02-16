@@ -67,15 +67,15 @@ export default function InventoryUnitGrid({ instances }: Props) {
                   </div>
                 )}
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-900">
-                    {primaryLabel}
-                  </p>
                   {instance.brand ? (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm font-semibold text-slate-900">
                       {instance.brand}
                       {instance.model ? ` · ${instance.model}` : ""}
                     </p>
                   ) : null}
+                  <p className="text-xs text-slate-500">
+                    {primaryLabel}
+                  </p>
                   {instance.type ? (
                     <p className="text-xs text-slate-500">
                       {typeLabels[instance.type] ?? instance.type}

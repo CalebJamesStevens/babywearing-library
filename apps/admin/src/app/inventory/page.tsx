@@ -2,7 +2,7 @@ import { db, carrierInstances, carriers } from "@babywearing/db";
 import { eq } from "@babywearing/db";
 import { requireAdmin } from "@/lib/require-admin";
 import AddCarrierModal from "@/components/AddCarrierModal";
-import InventoryUnitGrid from "@/components/InventoryUnitGrid";
+import InventoryGroupedInstances from "@/components/InventoryGroupedInstances";
 
 export const dynamic = "force-dynamic";
 
@@ -39,26 +39,6 @@ export default async function InventoryPage() {
     new Set(allBrands.map((carrier) => carrier.brand).filter(Boolean))
   );
 
-  const groupedByType = new Map<string, Map<string, typeof instanceRows>>();
-  for (const instance of instanceRows) {
-    const typeKey = instance.type;
-    const brandKey = instance.brand;
-    const brandMap = groupedByType.get(typeKey) ?? new Map<string, typeof instanceRows>();
-    const list = brandMap.get(brandKey) ?? [];
-    list.push(instance);
-    brandMap.set(brandKey, list);
-    groupedByType.set(typeKey, brandMap);
-  }
-
-  const typeLabels: Record<string, string> = {
-    soft_structured_carrier: "Soft structured carrier",
-    ring_sling: "Ring sling",
-    woven_wrap: "Woven wrap",
-    stretch_wrap: "Stretch wrap",
-    meh_dai_half_buckle: "Meh dai / half buckle",
-    onbuhimo: "Onbuhimo",
-  };
-
   return (
     <div className="space-y-6">
       <section className="card-lg">
@@ -79,37 +59,7 @@ export default async function InventoryPage() {
           <p className="text-xs text-slate-500">Grouped by type.</p>
         </div>
         <div className="mt-4 max-h-[70vh] overflow-y-auto pr-1">
-          {instanceRows.length === 0 ? (
-            <p className="text-sm text-slate-600">No carrier instances yet.</p>
-          ) : (
-            <div className="space-y-6">
-              {Array.from(groupedByType.entries()).map(([type, brandMap]) => (
-                <div key={type} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-slate-900">
-                      {typeLabels[type] ?? type}
-                    </h3>
-                    <span className="text-xs text-slate-500">
-                      {Array.from(brandMap.values()).reduce((sum, items) => sum + items.length, 0)} units
-                    </span>
-                  </div>
-                  <div className="space-y-5">
-                    {Array.from(brandMap.entries())
-                      .sort(([a], [b]) => a.localeCompare(b))
-                      .map(([brand, items]) => (
-                        <div key={`${type}-${brand}`} className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium text-slate-800">{brand}</h4>
-                            <span className="text-xs text-slate-500">{items.length} units</span>
-                          </div>
-                          <InventoryUnitGrid instances={items} />
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <InventoryGroupedInstances instances={instanceRows} />
         </div>
       </section>
     </div>
