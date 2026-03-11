@@ -34,34 +34,58 @@ export async function createCarrier(
       return { ok: false, error: "Brand and type are required." };
     }
 
-    const uploadedUrl = await uploadImage(formData, "imageFile", "carrier");
-    const fallbackUrl = String(formData.get("imageUrl") || "").trim();
-    const imageUrl = uploadedUrl ?? (fallbackUrl || null);
+    const carrierUploadedUrl = await uploadImage(formData, "carrierImageFile", "carrier");
+    const carrierFallbackUrl = String(formData.get("carrierImageUrl") || "").trim();
+    const carrierImageUrl = carrierUploadedUrl ?? (carrierFallbackUrl || null);
 
-    await db.insert(carriers).values({
-      brand,
-      type: type as
-        | "soft_structured_carrier"
-        | "ring_sling"
-        | "woven_wrap"
-        | "stretch_wrap"
-        | "meh_dai_half_buckle"
-        | "onbuhimo",
-      model: String(formData.get("model") || "") || null,
-      description: String(formData.get("description") || "") || null,
-      imageUrl,
-      videoUrl: String(formData.get("videoUrl") || "") || null,
-      safetyInfo: String(formData.get("safetyInfo") || "") || null,
-      safetyTests: String(formData.get("safetyTests") || "") || null,
-      recallInfo: String(formData.get("recallInfo") || "") || null,
-      manufacturerUrl: String(formData.get("manufacturerUrl") || "") || null,
+    const instanceUploadedUrl = await uploadImage(formData, "instanceImageFile", "instance");
+    const instanceFallbackUrl = String(formData.get("instanceImageUrl") || "").trim();
+    const instanceImageUrl = instanceUploadedUrl ?? (instanceFallbackUrl || null);
+
+    const carrier = await db.transaction(async (tx) => {
+      const [newCarrier] = await tx
+        .insert(carriers)
+        .values({
+          brand,
+          type: type as
+            | "soft_structured_carrier"
+            | "ring_sling"
+            | "woven_wrap"
+            | "stretch_wrap"
+            | "meh_dai_half_buckle"
+            | "onbuhimo",
+          model: String(formData.get("model") || "").trim() || null,
+          description: String(formData.get("description") || "").trim() || null,
+          imageUrl: carrierImageUrl,
+          videoUrl: String(formData.get("videoUrl") || "").trim() || null,
+          safetyInfo: String(formData.get("safetyInfo") || "").trim() || null,
+          safetyTests: String(formData.get("safetyTests") || "").trim() || null,
+          recallInfo: String(formData.get("recallInfo") || "").trim() || null,
+          manufacturerUrl: String(formData.get("manufacturerUrl") || "").trim() || null,
+        })
+        .returning({ id: carriers.id });
+
+      await tx.insert(carrierInstances).values({
+        carrierId: newCarrier.id,
+        status: "available",
+        serialNumber: String(formData.get("serialNumber") || "").trim() || null,
+        material: String(formData.get("material") || "").trim() || null,
+        colorPattern: String(formData.get("colorPattern") || "").trim() || null,
+        conditionNotes: String(formData.get("conditionNotes") || "").trim() || null,
+        issues: String(formData.get("issues") || "").trim() || null,
+        location: String(formData.get("location") || "").trim() || null,
+        imageUrl: instanceImageUrl,
+      });
+
+      return newCarrier;
     });
 
     revalidatePath("/inventory");
+    revalidatePath(`/inventory/${carrier.id}`);
     return { ok: true };
   } catch (error) {
     console.error("createCarrier failed", error);
-    return { ok: false, error: "Unable to add carrier. Try again." };
+    return { ok: false, error: "Unable to add carrier instance. Try again." };
   }
 }
 
@@ -101,7 +125,7 @@ export async function createInstanceWithState(
   try {
     const carrierId = String(formData.get("carrierId") || "");
     if (!carrierId) {
-      return { ok: false, error: "Select a carrier model first." };
+      return { ok: false, error: "Select a carrier first." };
     }
 
     const uploadedUrl = await uploadImage(formData, "imageFile", "instance");

@@ -88,7 +88,7 @@ export default function AddInventoryModal({ carrierId }: Props) {
         <div className="border-b border-slate-200 px-6 py-4">
           <h2 className="text-lg font-semibold text-slate-900">Add inventory unit</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Add a physical unit for this carrier model.
+            Add another physical unit for this carrier.
           </p>
         </div>
         <form action={formAction} className="grid gap-3 px-6 py-5">

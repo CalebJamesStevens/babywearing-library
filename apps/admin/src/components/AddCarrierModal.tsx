@@ -28,9 +28,9 @@ export default function AddCarrierModal({ brandOptions }: Props) {
         type="button"
         className="btn-primary fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-full px-6 shadow-md sm:hidden"
         onClick={() => dialogRef.current?.showModal()}
-        aria-label="Add carrier model"
+        aria-label="Add carrier instance"
       >
-        Add carrier
+        Add carrier instance
       </button>
 
       <button
@@ -38,7 +38,7 @@ export default function AddCarrierModal({ brandOptions }: Props) {
         className="btn-primary hidden sm:inline-flex"
         onClick={() => dialogRef.current?.showModal()}
       >
-        Add carrier
+        Add carrier instance
       </button>
 
       <dialog
@@ -46,9 +46,9 @@ export default function AddCarrierModal({ brandOptions }: Props) {
         className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-0 shadow-md"
       >
         <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">Add carrier model</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Add carrier instance</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Add a new carrier model. You can add individual inventory after saving.
+            Add a carrier and create its first physical inventory unit in one step.
           </p>
         </div>
         <div className="p-6">

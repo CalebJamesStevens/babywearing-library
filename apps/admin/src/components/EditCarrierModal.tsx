@@ -57,9 +57,9 @@ export default function EditCarrierModal({ carrier }: Props) {
         >
           <div className="mx-auto flex w-full max-w-xl flex-col rounded-lg border border-slate-200 bg-white p-0 shadow-md sm:my-8 max-h-[90vh]">
             <div className="border-b border-slate-200 px-6 py-4">
-              <h2 className="text-lg font-semibold text-slate-900">Edit carrier model</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Edit carrier details</h2>
               <p className="mt-1 text-sm text-slate-600">
-                Update model name, image, and safety info.
+                Update the shared details used by every instance of this carrier.
               </p>
             </div>
 
@@ -127,7 +127,7 @@ export default function EditCarrierModal({ carrier }: Props) {
                 placeholder="Manufacturer URL"
                 className="input"
               />
-              <ActionButton className="btn-primary">Save carrier model</ActionButton>
+              <ActionButton className="btn-primary">Save carrier details</ActionButton>
             </form>
 
             <div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4">
