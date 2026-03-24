@@ -10,6 +10,19 @@ type ActionState = {
   error?: string;
 };
 
+function parseDollarAmount(value: FormDataEntryValue | null) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const normalized = raw.replace(/[$,]/g, "");
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return Math.round(parsed * 100);
+}
+
 async function uploadImage(
   formData: FormData,
   fieldName: string,
@@ -69,6 +82,7 @@ export async function createCarrier(
         carrierId: newCarrier.id,
         status: "available",
         serialNumber: String(formData.get("serialNumber") || "").trim() || null,
+        replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
         material: String(formData.get("material") || "").trim() || null,
         colorPattern: String(formData.get("colorPattern") || "").trim() || null,
         conditionNotes: String(formData.get("conditionNotes") || "").trim() || null,
@@ -102,6 +116,7 @@ export async function createInstance(formData: FormData) {
       carrierId,
       status: "available",
       serialNumber: String(formData.get("serialNumber") || "") || null,
+      replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
       material: String(formData.get("material") || "") || null,
       colorPattern: String(formData.get("colorPattern") || "") || null,
       conditionNotes: String(formData.get("conditionNotes") || "") || null,
@@ -136,6 +151,7 @@ export async function createInstanceWithState(
       carrierId,
       status: "available",
       serialNumber: String(formData.get("serialNumber") || "") || null,
+      replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
       material: String(formData.get("material") || "") || null,
       colorPattern: String(formData.get("colorPattern") || "") || null,
       conditionNotes: String(formData.get("conditionNotes") || "") || null,
@@ -176,6 +192,7 @@ export async function updateInstance(formData: FormData) {
         colorPattern: String(formData.get("colorPattern") || "") || null,
         conditionNotes: String(formData.get("conditionNotes") || "") || null,
         location: String(formData.get("location") || "") || null,
+        replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
         imageUrl,
       })
       .where(eq(carrierInstances.id, instanceId));

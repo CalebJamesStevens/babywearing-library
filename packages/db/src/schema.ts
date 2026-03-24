@@ -73,6 +73,7 @@ export const carrierInstances = pgTable("carrier_instances", {
     .references(() => carriers.id, { onDelete: "cascade" })
     .notNull(),
   serialNumber: varchar("serial_number", { length: 120 }),
+  replacementValueCents: integer("replacement_value_cents"),
   qrCodeValue: text("qr_code_value").unique(),
   qrCodeImageUrl: text("qr_code_image_url"),
   imageUrl: text("image_url"),

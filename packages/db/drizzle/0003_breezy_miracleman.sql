@@ -1,0 +1,1 @@
+ALTER TABLE "carrier_instances" ADD COLUMN "replacement_value_cents" integer;

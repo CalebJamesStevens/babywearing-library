@@ -94,6 +94,15 @@ export default function AddInventoryModal({ carrierId }: Props) {
         <form action={formAction} className="grid gap-3 px-6 py-5">
           <input type="hidden" name="carrierId" value={carrierId} />
           <input name="serialNumber" placeholder="Serial number" className="input" />
+          <input
+            name="replacementValue"
+            type="number"
+            min="0"
+            step="0.01"
+            inputMode="decimal"
+            placeholder="Replacement value ($, optional)"
+            className="input"
+          />
           <input name="material" placeholder="Material (optional)" className="input" />
           <input name="colorPattern" placeholder="Color / pattern (optional)" className="input" />
           <label className="grid gap-2 text-sm font-medium text-slate-900">

@@ -9,6 +9,7 @@ type Instance = {
   carrierId: string;
   status: string;
   serialNumber: string | null;
+  replacementValueCents: number | null;
   material: string | null;
   colorPattern: string | null;
   imageUrl: string | null;
@@ -33,6 +34,19 @@ const typeLabels: Record<string, string> = {
   meh_dai_half_buckle: "Meh dai / half buckle",
   onbuhimo: "Onbuhimo",
 };
+
+function formatDollars(cents: number | null) {
+  if (cents == null) return "—";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(cents / 100);
+}
+
+function formatDollarsForInput(cents: number | null) {
+  if (cents == null) return "";
+  return (cents / 100).toFixed(2);
+}
 
 export default function InventoryUnitGrid({ instances }: Props) {
   const [active, setActive] = useState<Instance | null>(null);
@@ -90,6 +104,9 @@ export default function InventoryUnitGrid({ instances }: Props) {
                   <p className="text-xs text-slate-500">
                     {instance.colorPattern ? `Color/Pattern: ${instance.colorPattern}` : "Color/Pattern: —"}
                   </p>
+                  <p className="text-xs text-slate-500">
+                    Replacement value: {formatDollars(instance.replacementValueCents)}
+                  </p>
                 </div>
               </div>
             </button>
@@ -142,6 +159,16 @@ export default function InventoryUnitGrid({ instances }: Props) {
                   <option value="maintenance">Maintenance</option>
                   <option value="retired">Retired</option>
                 </select>
+                <input
+                  name="replacementValue"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  defaultValue={formatDollarsForInput(active.replacementValueCents)}
+                  placeholder="Replacement value ($)"
+                  className="input"
+                />
                 <input name="location" defaultValue={active.location ?? ""} placeholder="Location" className="input" />
                 <input name="material" defaultValue={active.material ?? ""} placeholder="Material" className="input" />
                 <input name="colorPattern" defaultValue={active.colorPattern ?? ""} placeholder="Color / pattern" className="input" />

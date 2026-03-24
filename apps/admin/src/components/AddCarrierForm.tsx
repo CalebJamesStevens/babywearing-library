@@ -69,6 +69,15 @@ export default function AddCarrierForm({ brandOptions, onSuccess }: Props) {
         </p>
       </div>
       <input name="serialNumber" placeholder="Serial number (optional)" className="input" />
+      <input
+        name="replacementValue"
+        type="number"
+        min="0"
+        step="0.01"
+        inputMode="decimal"
+        placeholder="Replacement value ($, optional)"
+        className="input"
+      />
       <input name="material" placeholder="Material (optional)" className="input" />
       <input name="colorPattern" placeholder="Color / pattern (optional)" className="input" />
       <label className="grid gap-2 text-sm font-medium text-slate-900">

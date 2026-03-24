@@ -15,6 +15,7 @@ export default async function InventoryPage() {
       carrierId: carrierInstances.carrierId,
       status: carrierInstances.status,
       serialNumber: carrierInstances.serialNumber,
+      replacementValueCents: carrierInstances.replacementValueCents,
       material: carrierInstances.material,
       colorPattern: carrierInstances.colorPattern,
       imageUrl: carrierInstances.imageUrl,

@@ -8,6 +8,7 @@ type InstanceRow = {
   carrierId: string;
   status: string;
   serialNumber: string | null;
+  replacementValueCents: number | null;
   material: string | null;
   colorPattern: string | null;
   imageUrl: string | null;
