@@ -42,6 +42,14 @@ export default async function InventoryCarrierPage({ params }: PageProps) {
     .from(carrierInstances)
     .where(eq(carrierInstances.carrierId, carrierId))
     .orderBy(carrierInstances.createdAt);
+  const instancesWithCarrier = instances.map((instance) => ({
+    ...instance,
+    brand: carrier.brand,
+    model: carrier.model,
+    size: carrier.size,
+    type: carrier.type,
+  }));
+  const carrierName = [carrier.brand, carrier.model, carrier.size].filter(Boolean).join(" · ");
 
   return (
     <div className="space-y-6">
@@ -56,8 +64,7 @@ export default async function InventoryCarrierPage({ params }: PageProps) {
               {typeLabels[carrier.type] ?? carrier.type}
             </p>
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              {carrier.brand}
-              {carrier.model ? ` · ${carrier.model}` : ""}
+              {carrierName}
             </h1>
             <p className="mt-2 text-sm text-slate-600">
               {instances.length} units in inventory
@@ -70,7 +77,7 @@ export default async function InventoryCarrierPage({ params }: PageProps) {
             <div className="h-28 w-28 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
               <img
                 src={carrier.imageUrl}
-                alt={`${carrier.brand} ${carrier.model ?? ""}`}
+                alt={carrierName}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -92,7 +99,7 @@ export default async function InventoryCarrierPage({ params }: PageProps) {
           {instances.length === 0 ? (
             <p className="text-sm text-slate-600">No units yet.</p>
           ) : (
-            <InventoryUnitGrid instances={instances} />
+            <InventoryUnitGrid instances={instancesWithCarrier} />
           )}
         </div>
       </section>

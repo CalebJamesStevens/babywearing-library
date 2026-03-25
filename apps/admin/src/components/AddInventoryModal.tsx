@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useActionState } from "react";
 import { createPortal } from "react-dom";
 import ActionButton from "@/components/ActionButton";
+import FormField from "@/components/FormField";
 import { createInstanceWithState } from "@/app/inventory/actions";
 
 type Props = {
@@ -83,55 +84,75 @@ export default function AddInventoryModal({ carrierId }: Props) {
 
       <dialog
         ref={dialogRef}
-        className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-0 shadow-md"
+        className="m-auto w-[calc(100vw-1rem)] max-w-lg overflow-hidden rounded-lg border border-slate-200 bg-white p-0 shadow-md sm:w-full"
       >
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">Add inventory unit</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Add another physical unit for this carrier.
-          </p>
-        </div>
-        <form action={formAction} className="grid gap-3 px-6 py-5">
-          <input type="hidden" name="carrierId" value={carrierId} />
-          <input name="serialNumber" placeholder="Serial number" className="input" />
-          <input
-            name="replacementValue"
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            placeholder="Replacement value ($, optional)"
-            className="input"
-          />
-          <input name="material" placeholder="Material (optional)" className="input" />
-          <input name="colorPattern" placeholder="Color / pattern (optional)" className="input" />
-          <label className="grid gap-2 text-sm font-medium text-slate-900">
-            Unit photo
-            <input
-              name="imageFile"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="input"
-            />
-          </label>
-          <input name="imageUrl" placeholder="Unit image URL (optional)" className="input" />
-          <input name="location" placeholder="Storage location" className="input" />
-          <textarea name="conditionNotes" placeholder="Condition notes" className="textarea h-20" />
-          <textarea name="issues" placeholder="Known issues" className="textarea h-20" />
-          {state.error ? (
-            <p className="text-xs text-rose-600">{state.error}</p>
-          ) : null}
-          <ActionButton className="btn-primary">Add inventory</ActionButton>
-        </form>
-        <div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4">
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => dialogRef.current?.close()}
+        <div className="flex max-h-[calc(100dvh-1rem)] flex-col sm:max-h-[calc(100dvh-3rem)]">
+          <div className="shrink-0 border-b border-slate-200 px-4 py-4 sm:px-6">
+            <h2 className="text-lg font-semibold text-slate-900">Add inventory unit</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Add another physical unit for this carrier.
+            </p>
+          </div>
+          <form
+            action={formAction}
+            className="grid min-h-0 flex-1 gap-3 overflow-y-auto px-4 py-5 sm:px-6"
           >
-            Close
-          </button>
+            <input type="hidden" name="carrierId" value={carrierId} />
+            <FormField label="Serial number">
+              <input name="serialNumber" placeholder="Serial number" className="input" />
+            </FormField>
+            <FormField label="Replacement value">
+              <input
+                name="replacementValue"
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                placeholder="Replacement value ($, optional)"
+                className="input"
+              />
+            </FormField>
+            <FormField label="Material">
+              <input name="material" placeholder="Material (optional)" className="input" />
+            </FormField>
+            <FormField label="Color / pattern">
+              <input name="colorPattern" placeholder="Color / pattern (optional)" className="input" />
+            </FormField>
+            <FormField label="Unit photo" className="gap-2">
+              <input
+                name="imageFile"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="input"
+              />
+            </FormField>
+            <FormField label="Unit image URL">
+              <input name="imageUrl" placeholder="Unit image URL (optional)" className="input" />
+            </FormField>
+            <FormField label="Storage location">
+              <input name="location" placeholder="Storage location" className="input" />
+            </FormField>
+            <FormField label="Condition notes">
+              <textarea name="conditionNotes" placeholder="Condition notes" className="textarea h-20" />
+            </FormField>
+            <FormField label="Known issues">
+              <textarea name="issues" placeholder="Known issues" className="textarea h-20" />
+            </FormField>
+            {state.error ? (
+              <p className="text-xs text-rose-600">{state.error}</p>
+            ) : null}
+            <ActionButton className="btn-primary">Add inventory</ActionButton>
+          </form>
+          <div className="shrink-0 flex justify-end gap-2 border-t border-slate-200 px-4 py-4 sm:px-6">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => dialogRef.current?.close()}
+            >
+              Close
+            </button>
+          </div>
         </div>
       </dialog>
     </>

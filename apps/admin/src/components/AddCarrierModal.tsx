@@ -28,9 +28,9 @@ export default function AddCarrierModal({ brandOptions }: Props) {
         type="button"
         className="btn-primary fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-full px-6 shadow-md sm:hidden"
         onClick={() => dialogRef.current?.showModal()}
-        aria-label="Add carrier instance"
+        aria-label="Add Carrier"
       >
-        Add carrier instance
+        Add Carrier
       </button>
 
       <button
@@ -38,33 +38,32 @@ export default function AddCarrierModal({ brandOptions }: Props) {
         className="btn-primary hidden sm:inline-flex"
         onClick={() => dialogRef.current?.showModal()}
       >
-        Add carrier instance
+        Add Carrier
       </button>
 
       <dialog
         ref={dialogRef}
-        className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-0 shadow-md"
+        className="m-auto w-[calc(100vw-1rem)] max-w-lg overflow-hidden rounded-lg border border-slate-200 bg-white p-0 shadow-md sm:w-full"
       >
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">Add carrier instance</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Add a carrier and create its first physical inventory unit in one step.
-          </p>
-        </div>
-        <div className="p-6">
-          <AddCarrierForm
-            brandOptions={brandOptions}
-            onSuccess={() => dialogRef.current?.close()}
-          />
-        </div>
-        <div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4">
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => dialogRef.current?.close()}
-          >
-            Close
-          </button>
+        <div className="flex max-h-[calc(100dvh-1rem)] flex-col sm:max-h-[calc(100dvh-3rem)]">
+          <div className="shrink-0 border-b border-slate-200 px-4 py-4 sm:px-6">
+            <h2 className="text-lg font-semibold text-slate-900">Add Carrier</h2>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+            <AddCarrierForm
+              brandOptions={brandOptions}
+              onSuccess={() => dialogRef.current?.close()}
+            />
+          </div>
+          <div className="shrink-0 flex justify-end gap-2 border-t border-slate-200 px-4 py-4 sm:px-6">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => dialogRef.current?.close()}
+            >
+              Close
+            </button>
+          </div>
         </div>
       </dialog>
     </>

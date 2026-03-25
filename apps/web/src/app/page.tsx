@@ -14,6 +14,7 @@ export default async function HomePage() {
       carrierBrand: carriers.brand,
       carrierType: carriers.type,
       carrierModel: carriers.model,
+      carrierSize: carriers.size,
       carrierImage: carriers.imageUrl,
       checkoutId: checkouts.id,
     })
@@ -41,6 +42,9 @@ export default async function HomePage() {
             const available =
               row.instanceStatus === "available" && !row.checkoutId;
             const image = row.instanceImage || row.carrierImage;
+            const carrierName = [row.carrierBrand, row.carrierModel, row.carrierSize]
+              .filter(Boolean)
+              .join(" · ");
             return (
               <article
                 key={row.instanceId}
@@ -54,8 +58,7 @@ export default async function HomePage() {
                         .replace("meh dai", "meh dai /")}
                     </p>
                     <h2 className="text-lg font-semibold text-slate-900">
-                      {row.carrierBrand}
-                      {row.carrierModel ? ` ${row.carrierModel}` : ""}
+                      {carrierName}
                     </h2>
                     <p className="mt-2 text-sm text-slate-600">
                       {available ? "Available now" : "Currently checked out"}
@@ -83,7 +86,7 @@ export default async function HomePage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={image}
-                      alt={`${row.carrierBrand} ${row.carrierModel ?? ""}`}
+                      alt={carrierName}
                       className="h-44 w-full object-cover"
                     />
                   </div>

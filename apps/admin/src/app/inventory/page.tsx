@@ -25,11 +25,12 @@ export default async function InventoryPage() {
       qrCodeValue: carrierInstances.qrCodeValue,
       brand: carriers.brand,
       model: carriers.model,
+      size: carriers.size,
       type: carriers.type,
     })
     .from(carrierInstances)
     .innerJoin(carriers, eq(carrierInstances.carrierId, carriers.id))
-    .orderBy(carriers.type, carriers.brand, carriers.model, carrierInstances.createdAt);
+    .orderBy(carriers.type, carriers.brand, carriers.model, carriers.size, carrierInstances.createdAt);
 
   const allBrands = await db
     .select({ brand: carriers.brand })

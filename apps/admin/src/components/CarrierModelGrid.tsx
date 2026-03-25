@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import FormField from "@/components/FormField";
 
 type CarrierRow = {
   id: string;
@@ -51,24 +52,25 @@ export default function CarrierModelGrid({ carriers }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <input
-          className="input sm:max-w-xs"
-          placeholder="Filter carriers"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-        <div className="flex items-center gap-2 text-xs text-slate-600">
-          <span>Group by</span>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <FormField label="Filter carriers" className="sm:max-w-xs">
+          <input
+            className="input"
+            placeholder="Filter carriers"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </FormField>
+        <FormField label="Group by" className="sm:w-40">
           <select
-            className="input h-9 text-xs sm:w-40"
+            className="input h-9 text-xs"
             value={groupBy}
             onChange={(event) => setGroupBy(event.target.value as "brand" | "type")}
           >
             <option value="brand">Brand</option>
             <option value="type">Type</option>
           </select>
-        </div>
+        </FormField>
       </div>
 
       {groups.length === 0 ? (

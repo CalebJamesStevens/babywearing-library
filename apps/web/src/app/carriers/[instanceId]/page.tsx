@@ -26,6 +26,7 @@ export default async function CarrierDetailPage({ params }: PageProps) {
       carrierBrand: carriers.brand,
       carrierType: carriers.type,
       carrierModel: carriers.model,
+      carrierSize: carriers.size,
       carrierDescription: carriers.description,
       carrierImage: carriers.imageUrl,
       videoUrl: carriers.videoUrl,
@@ -58,6 +59,9 @@ export default async function CarrierDetailPage({ params }: PageProps) {
     .limit(1);
 
   const available = row.instanceStatus === "available" && activeCheckout.length === 0;
+  const carrierName = [row.carrierBrand, row.carrierModel, row.carrierSize]
+    .filter(Boolean)
+    .join(" · ");
 
   const member = session?.user?.id
     ? await db
@@ -165,8 +169,7 @@ export default async function CarrierDetailPage({ params }: PageProps) {
               {(row.carrierType ?? "carrier").replaceAll("_", " ").replace("meh dai", "meh dai /")}
             </p>
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              {row.carrierBrand}
-              {row.carrierModel ? ` ${row.carrierModel}` : ""}
+              {carrierName}
             </h1>
             {row.instanceMaterial ? (
               <p className="mt-2 text-sm text-slate-600">
@@ -202,7 +205,7 @@ export default async function CarrierDetailPage({ params }: PageProps) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={row.instanceImage || row.carrierImage || ""}
-              alt={`${row.carrierBrand} ${row.carrierModel ?? ""}`}
+              alt={carrierName}
               className="h-64 w-full object-cover"
             />
           </div>

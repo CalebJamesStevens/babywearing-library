@@ -24,7 +24,7 @@ export default function InventoryTabs({ brandOptions, addInstanceForm }: Props) 
               : "btn-secondary"
           }
         >
-          Add carrier instance
+          Add Carrier
         </button>
         <button
           type="button"
@@ -41,7 +41,7 @@ export default function InventoryTabs({ brandOptions, addInstanceForm }: Props) 
 
       {tab === "instance" ? (
         <div className="card">
-          <h2 className="text-lg font-semibold text-slate-900">Add carrier instance</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Add Carrier</h2>
           {addInstanceForm}
         </div>
       ) : (

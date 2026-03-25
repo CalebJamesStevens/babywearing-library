@@ -18,6 +18,7 @@ type InstanceRow = {
   qrCodeValue: string | null;
   brand: string;
   model: string | null;
+  size: string | null;
   type: string;
 };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import FormField from "@/components/FormField";
 
 type Props = {
   action: (formData: FormData) => void;
@@ -20,11 +21,13 @@ export function CheckoutForm({ action, disabled, available }: Props) {
       }}
       className="mt-4 space-y-3"
     >
-      <textarea
-        name="notes"
-        placeholder="Notes for the librarian (fit preferences, dates, etc.)"
-        className="textarea h-24"
-      />
+      <FormField label="Notes for the librarian">
+        <textarea
+          name="notes"
+          placeholder="Notes for the librarian (fit preferences, dates, etc.)"
+          className="textarea h-24"
+        />
+      </FormField>
       <button
         type="submit"
         className="btn-primary w-full"

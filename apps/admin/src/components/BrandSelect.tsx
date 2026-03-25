@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import FormField from "@/components/FormField";
 
 type Props = {
   name?: string;
@@ -10,22 +11,22 @@ type Props = {
 export default function BrandSelect({ name = "brand", brands }: Props) {
   const [value, setValue] = useState("");
   const normalized = value.trim().toLowerCase();
-
-  const hasBrand = useMemo(() => {
-    if (!normalized) return false;
-    return brands.some((brand) => brand.toLowerCase() === normalized);
-  }, [brands, normalized]);
+  const hasBrand =
+    normalized.length > 0 &&
+    brands.some((brand) => brand.toLowerCase() === normalized);
 
   return (
     <div className="space-y-1">
-      <input
-        name={name}
-        list="brand-options"
-        placeholder="Brand"
-        className="input"
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-      />
+      <FormField label="Brand">
+        <input
+          name={name}
+          list="brand-options"
+          placeholder="Brand"
+          className="input"
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+        />
+      </FormField>
       <datalist id="brand-options">
         {brands.map((brand) => (
           <option key={brand} value={brand} />

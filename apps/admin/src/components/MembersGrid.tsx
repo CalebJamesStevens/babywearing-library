@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import ActionButton from "@/components/ActionButton";
+import FormField from "@/components/FormField";
 import { upsertMember } from "@/app/members/actions";
 
 type MemberEntry = {
@@ -99,44 +100,56 @@ export default function MembersGrid({ entries }: Props) {
             </div>
             <form action={upsertMember} className="grid gap-3 px-6 py-5">
               <input type="hidden" name="userId" value={active.user.id} />
-              <select name="status" defaultValue={active.member?.status ?? "active"} className="input">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="expired">Expired</option>
-                <option value="suspended">Suspended</option>
-              </select>
-              <input
-                name="lastPaidAt"
-                type="date"
-                defaultValue={active.member?.lastPaidAt ?? ""}
-                className="input"
-              />
-              <select name="paymentType" defaultValue={active.member?.paymentType ?? ""} className="input">
-                <option value="">Payment type</option>
-                <option value="cash">Cash</option>
-                <option value="card">Card</option>
-                <option value="venmo">Venmo</option>
-                <option value="paypal">PayPal</option>
-                <option value="other">Other</option>
-              </select>
-              <input
-                name="contactEmail"
-                defaultValue={active.member?.contactEmail ?? active.user.email ?? ""}
-                placeholder="Email"
-                className="input"
-              />
-              <input
-                name="contactPhone"
-                defaultValue={active.member?.contactPhone ?? ""}
-                placeholder="Phone"
-                className="input"
-              />
-              <textarea
-                name="notes"
-                defaultValue={active.member?.notes ?? ""}
-                placeholder="Notes"
-                className="textarea h-24"
-              />
+              <FormField label="Status">
+                <select name="status" defaultValue={active.member?.status ?? "active"} className="input">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="expired">Expired</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </FormField>
+              <FormField label="Last paid date">
+                <input
+                  name="lastPaidAt"
+                  type="date"
+                  defaultValue={active.member?.lastPaidAt ?? ""}
+                  className="input"
+                />
+              </FormField>
+              <FormField label="Payment type">
+                <select name="paymentType" defaultValue={active.member?.paymentType ?? ""} className="input">
+                  <option value="">Payment type</option>
+                  <option value="cash">Cash</option>
+                  <option value="card">Card</option>
+                  <option value="venmo">Venmo</option>
+                  <option value="paypal">PayPal</option>
+                  <option value="other">Other</option>
+                </select>
+              </FormField>
+              <FormField label="Email">
+                <input
+                  name="contactEmail"
+                  defaultValue={active.member?.contactEmail ?? active.user.email ?? ""}
+                  placeholder="Email"
+                  className="input"
+                />
+              </FormField>
+              <FormField label="Phone">
+                <input
+                  name="contactPhone"
+                  defaultValue={active.member?.contactPhone ?? ""}
+                  placeholder="Phone"
+                  className="input"
+                />
+              </FormField>
+              <FormField label="Notes">
+                <textarea
+                  name="notes"
+                  defaultValue={active.member?.notes ?? ""}
+                  placeholder="Notes"
+                  className="textarea h-24"
+                />
+              </FormField>
               <ActionButton className="btn-primary">Save member</ActionButton>
             </form>
             <div className="flex justify-end gap-2 border-t border-slate-200 px-6 py-4">

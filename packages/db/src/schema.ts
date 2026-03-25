@@ -53,6 +53,7 @@ export const carriers = pgTable("carriers", {
   brand: varchar("brand", { length: 120 }).notNull(),
   type: carrierType("type").notNull(),
   model: varchar("model", { length: 160 }),
+  size: varchar("size", { length: 120 }),
   description: text("description"),
   imageUrl: text("image_url"),
   videoUrl: text("video_url"),

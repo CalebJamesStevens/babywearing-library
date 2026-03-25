@@ -47,10 +47,6 @@ export async function createCarrier(
       return { ok: false, error: "Brand and type are required." };
     }
 
-    const carrierUploadedUrl = await uploadImage(formData, "carrierImageFile", "carrier");
-    const carrierFallbackUrl = String(formData.get("carrierImageUrl") || "").trim();
-    const carrierImageUrl = carrierUploadedUrl ?? (carrierFallbackUrl || null);
-
     const instanceUploadedUrl = await uploadImage(formData, "instanceImageFile", "instance");
     const instanceFallbackUrl = String(formData.get("instanceImageUrl") || "").trim();
     const instanceImageUrl = instanceUploadedUrl ?? (instanceFallbackUrl || null);
@@ -68,13 +64,7 @@ export async function createCarrier(
             | "meh_dai_half_buckle"
             | "onbuhimo",
           model: String(formData.get("model") || "").trim() || null,
-          description: String(formData.get("description") || "").trim() || null,
-          imageUrl: carrierImageUrl,
-          videoUrl: String(formData.get("videoUrl") || "").trim() || null,
-          safetyInfo: String(formData.get("safetyInfo") || "").trim() || null,
-          safetyTests: String(formData.get("safetyTests") || "").trim() || null,
-          recallInfo: String(formData.get("recallInfo") || "").trim() || null,
-          manufacturerUrl: String(formData.get("manufacturerUrl") || "").trim() || null,
+          size: String(formData.get("size") || "").trim() || null,
         })
         .returning({ id: carriers.id });
 
@@ -175,27 +165,52 @@ export async function updateInstance(formData: FormData) {
     const carrierId = String(formData.get("carrierId") || "");
     if (!instanceId) return;
 
-    const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
-    const fallbackUrl = String(formData.get("imageUrl") || "").trim();
-    const imageUrl = uploadedUrl ?? (fallbackUrl || null);
+    const uploadedInstanceUrl = await uploadImage(formData, "imageFile", "instance");
+    const instanceFallbackUrl = String(formData.get("imageUrl") || "").trim();
+    const imageUrl = uploadedInstanceUrl ?? (instanceFallbackUrl || null);
 
-    await db
-      .update(carrierInstances)
-      .set({
-        status: String(formData.get("status") || "available") as
-          | "available"
-          | "checked_out"
-          | "maintenance"
-          | "retired",
-        issues: String(formData.get("issues") || "") || null,
-        material: String(formData.get("material") || "") || null,
-        colorPattern: String(formData.get("colorPattern") || "") || null,
-        conditionNotes: String(formData.get("conditionNotes") || "") || null,
-        location: String(formData.get("location") || "") || null,
-        replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
-        imageUrl,
-      })
-      .where(eq(carrierInstances.id, instanceId));
+    const brand = String(formData.get("brand") || "").trim();
+    const type = String(formData.get("type") || "").trim();
+
+    await db.transaction(async (tx) => {
+      if (carrierId && brand && type) {
+        await tx
+          .update(carriers)
+          .set({
+            brand,
+            type: type as
+              | "soft_structured_carrier"
+              | "ring_sling"
+              | "woven_wrap"
+              | "stretch_wrap"
+              | "meh_dai_half_buckle"
+              | "onbuhimo",
+            model: String(formData.get("model") || "").trim() || null,
+            size: String(formData.get("size") || "").trim() || null,
+          })
+          .where(eq(carriers.id, carrierId));
+      }
+
+      await tx
+        .update(carrierInstances)
+        .set({
+          status: String(formData.get("status") || "available") as
+            | "available"
+            | "checked_out"
+            | "maintenance"
+            | "retired",
+          serialNumber: String(formData.get("serialNumber") || "").trim() || null,
+          qrCodeValue: String(formData.get("qrCodeValue") || "").trim() || null,
+          issues: String(formData.get("issues") || "").trim() || null,
+          material: String(formData.get("material") || "").trim() || null,
+          colorPattern: String(formData.get("colorPattern") || "").trim() || null,
+          conditionNotes: String(formData.get("conditionNotes") || "").trim() || null,
+          location: String(formData.get("location") || "").trim() || null,
+          replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
+          imageUrl,
+        })
+        .where(eq(carrierInstances.id, instanceId));
+    });
 
     revalidatePath("/inventory");
     if (carrierId) {
@@ -216,10 +231,6 @@ export async function updateCarrier(formData: FormData) {
     const type = String(formData.get("type") || "").trim();
     if (!brand || !type) return;
 
-    const uploadedUrl = await uploadImage(formData, "imageFile", "carrier");
-    const fallbackUrl = String(formData.get("imageUrl") || "").trim();
-    const imageUrl = uploadedUrl ?? (fallbackUrl || null);
-
     await db
       .update(carriers)
       .set({
@@ -232,13 +243,7 @@ export async function updateCarrier(formData: FormData) {
           | "meh_dai_half_buckle"
           | "onbuhimo",
         model: String(formData.get("model") || "").trim() || null,
-        description: String(formData.get("description") || "").trim() || null,
-        imageUrl,
-        videoUrl: String(formData.get("videoUrl") || "").trim() || null,
-        safetyInfo: String(formData.get("safetyInfo") || "").trim() || null,
-        safetyTests: String(formData.get("safetyTests") || "").trim() || null,
-        recallInfo: String(formData.get("recallInfo") || "").trim() || null,
-        manufacturerUrl: String(formData.get("manufacturerUrl") || "").trim() || null,
+        size: String(formData.get("size") || "").trim() || null,
       })
       .where(eq(carriers.id, carrierId));
 

@@ -7,6 +7,7 @@ import {
 } from "@babywearing/db";
 import { eq } from "@babywearing/db";
 import { revalidatePath } from "next/cache";
+import FormField from "@/components/FormField";
 import { requireAdmin } from "@/lib/require-admin";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ export default async function CheckoutsPage() {
       carrierInstanceId: carrierInstances.id,
       carrierBrand: carriers.brand,
       carrierModel: carriers.model,
+      carrierSize: carriers.size,
       carrierType: carriers.type,
     })
     .from(checkouts)
@@ -124,7 +126,9 @@ export default async function CheckoutsPage() {
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-slate-900">
-                      {checkout.carrierBrand} {checkout.carrierModel ?? ""}
+                      {[checkout.carrierBrand, checkout.carrierModel, checkout.carrierSize]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                     <p className="text-xs text-slate-500">
                       {checkout.carrierType} · Member {checkout.memberUserId}
@@ -155,15 +159,21 @@ export default async function CheckoutsPage() {
                   <form action={approveCheckout} className="mt-4 grid gap-3 sm:grid-cols-2">
                     <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
                     <input type="hidden" name="carrierInstanceId" value={checkout.carrierInstanceId ?? ""} />
-                    <input
-                      name="approvedLengthDays"
-                      type="number"
-                      min="1"
-                      placeholder="Checkout length (days)"
-                      className="input"
-                    />
-                    <textarea name="conditionBefore" placeholder="Condition before checkout" className="textarea h-20" />
-                    <textarea name="adminNotes" placeholder="Admin notes" className="textarea h-20 sm:col-span-2" />
+                    <FormField label="Checkout length (days)">
+                      <input
+                        name="approvedLengthDays"
+                        type="number"
+                        min="1"
+                        placeholder="Checkout length (days)"
+                        className="input"
+                      />
+                    </FormField>
+                    <FormField label="Condition before checkout">
+                      <textarea name="conditionBefore" placeholder="Condition before checkout" className="textarea h-20" />
+                    </FormField>
+                    <FormField label="Admin notes" className="sm:col-span-2">
+                      <textarea name="adminNotes" placeholder="Admin notes" className="textarea h-20" />
+                    </FormField>
                     <button className="btn-primary sm:col-span-2">
                       Approve checkout
                     </button>
@@ -173,7 +183,9 @@ export default async function CheckoutsPage() {
                 {checkout.status === "pending" ? (
                   <form action={denyCheckout} className="mt-3">
                     <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
-                    <input name="adminNotes" placeholder="Reason for denial" className="input" />
+                    <FormField label="Reason for denial">
+                      <input name="adminNotes" placeholder="Reason for denial" className="input" />
+                    </FormField>
                     <button className="btn-secondary mt-2">
                       Deny request
                     </button>
@@ -184,7 +196,9 @@ export default async function CheckoutsPage() {
                   <form action={markReturned} className="mt-4 grid gap-3">
                     <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
                     <input type="hidden" name="carrierInstanceId" value={checkout.carrierInstanceId ?? ""} />
-                    <textarea name="conditionAfter" placeholder="Condition after return" className="textarea h-20" />
+                    <FormField label="Condition after return">
+                      <textarea name="conditionAfter" placeholder="Condition after return" className="textarea h-20" />
+                    </FormField>
                     <button className="btn-primary">
                       Mark returned
                     </button>
