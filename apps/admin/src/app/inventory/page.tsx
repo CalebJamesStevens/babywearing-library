@@ -1,4 +1,4 @@
-import { db, carrierInstances, carriers } from "@babywearing/db";
+import { db, carrierInstances, carriers, sql } from "@babywearing/db";
 import { eq } from "@babywearing/db";
 import { requireAdmin } from "@/lib/require-admin";
 import AddCarrierModal from "@/components/AddCarrierModal";
@@ -23,14 +23,20 @@ export default async function InventoryPage() {
       conditionNotes: carrierInstances.conditionNotes,
       issues: carrierInstances.issues,
       qrCodeValue: carrierInstances.qrCodeValue,
-      brand: carriers.brand,
-      model: carriers.model,
-      size: carriers.size,
-      type: carriers.type,
+      brand: sql<string>`coalesce(${carrierInstances.brand}, ${carriers.brand})`,
+      model: sql<string | null>`coalesce(${carrierInstances.model}, ${carriers.model})`,
+      size: sql<string | null>`coalesce(${carrierInstances.size}, ${carriers.size})`,
+      type: sql<string>`coalesce(${carrierInstances.type}, ${carriers.type})`,
     })
     .from(carrierInstances)
     .innerJoin(carriers, eq(carrierInstances.carrierId, carriers.id))
-    .orderBy(carriers.type, carriers.brand, carriers.model, carriers.size, carrierInstances.createdAt);
+    .orderBy(
+      sql`coalesce(${carrierInstances.type}, ${carriers.type})`,
+      sql`coalesce(${carrierInstances.brand}, ${carriers.brand})`,
+      sql`coalesce(${carrierInstances.model}, ${carriers.model})`,
+      sql`coalesce(${carrierInstances.size}, ${carriers.size})`,
+      carrierInstances.createdAt
+    );
 
   const allBrands = await db
     .select({ brand: carriers.brand })

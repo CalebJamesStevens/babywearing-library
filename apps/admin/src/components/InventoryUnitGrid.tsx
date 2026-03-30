@@ -130,7 +130,7 @@ export default function InventoryUnitGrid({ instances }: Props) {
                 Unit {active.serialNumber ? `· ${active.serialNumber}` : active.id.slice(0, 8)}
               </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Update unit details and QR code.
+                Update the details for this unit only.
               </p>
             </div>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
@@ -155,7 +155,7 @@ export default function InventoryUnitGrid({ instances }: Props) {
                 <input type="hidden" name="instanceId" value={active.id} />
                 <input type="hidden" name="carrierId" value={active.carrierId} />
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">Carrier details</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">Carrier details for this unit</h3>
                 </div>
                 <FormField label="Brand">
                   <input

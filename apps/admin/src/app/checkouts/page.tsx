@@ -4,6 +4,7 @@ import {
   checkouts,
   db,
   members,
+  sql,
 } from "@babywearing/db";
 import { eq } from "@babywearing/db";
 import { revalidatePath } from "next/cache";
@@ -27,10 +28,10 @@ export default async function CheckoutsPage() {
       memberId: members.id,
       memberUserId: members.userId,
       carrierInstanceId: carrierInstances.id,
-      carrierBrand: carriers.brand,
-      carrierModel: carriers.model,
-      carrierSize: carriers.size,
-      carrierType: carriers.type,
+      carrierBrand: sql<string>`coalesce(${carrierInstances.brand}, ${carriers.brand})`,
+      carrierModel: sql<string | null>`coalesce(${carrierInstances.model}, ${carriers.model})`,
+      carrierSize: sql<string | null>`coalesce(${carrierInstances.size}, ${carriers.size})`,
+      carrierType: sql<string>`coalesce(${carrierInstances.type}, ${carriers.type})`,
     })
     .from(checkouts)
     .leftJoin(members, eq(checkouts.memberId, members.id))

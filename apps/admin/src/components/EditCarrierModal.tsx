@@ -54,7 +54,7 @@ export default function EditCarrierModal({ carrier }: Props) {
             <div className="shrink-0 border-b border-slate-200 px-4 py-4 sm:px-6">
               <h2 className="text-lg font-semibold text-slate-900">Edit carrier details</h2>
               <p className="mt-1 text-sm text-slate-600">
-                Update the shared carrier details used by every unit.
+                Update the default carrier details for this group. Individual units can override these fields.
               </p>
             </div>
 

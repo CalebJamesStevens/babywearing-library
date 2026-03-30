@@ -1,4 +1,4 @@
-import { db, carrierInstances, carriers, checkouts } from "@babywearing/db";
+import { db, carrierInstances, carriers, checkouts, sql } from "@babywearing/db";
 import { and, eq } from "@babywearing/db";
 import HomeHero from "@/components/HomeHero";
 
@@ -11,10 +11,10 @@ export default async function HomePage() {
       instanceStatus: carrierInstances.status,
       instanceImage: carrierInstances.imageUrl,
       issues: carrierInstances.issues,
-      carrierBrand: carriers.brand,
-      carrierType: carriers.type,
-      carrierModel: carriers.model,
-      carrierSize: carriers.size,
+      carrierBrand: sql<string>`coalesce(${carrierInstances.brand}, ${carriers.brand})`,
+      carrierType: sql<string>`coalesce(${carrierInstances.type}, ${carriers.type})`,
+      carrierModel: sql<string | null>`coalesce(${carrierInstances.model}, ${carriers.model})`,
+      carrierSize: sql<string | null>`coalesce(${carrierInstances.size}, ${carriers.size})`,
       carrierImage: carriers.imageUrl,
       checkoutId: checkouts.id,
     })

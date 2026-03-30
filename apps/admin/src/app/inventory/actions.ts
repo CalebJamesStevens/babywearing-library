@@ -10,6 +10,14 @@ type ActionState = {
   error?: string;
 };
 
+type CarrierType =
+  | "soft_structured_carrier"
+  | "ring_sling"
+  | "woven_wrap"
+  | "stretch_wrap"
+  | "meh_dai_half_buckle"
+  | "onbuhimo";
+
 function parseDollarAmount(value: FormDataEntryValue | null) {
   const raw = String(value || "").trim();
   if (!raw) return null;
@@ -43,6 +51,8 @@ export async function createCarrier(
   try {
     const brand = String(formData.get("brand") || "").trim();
     const type = String(formData.get("type") || "").trim();
+    const model = String(formData.get("model") || "").trim() || null;
+    const size = String(formData.get("size") || "").trim() || null;
     if (!brand || !type) {
       return { ok: false, error: "Brand and type are required." };
     }
@@ -56,20 +66,18 @@ export async function createCarrier(
         .insert(carriers)
         .values({
           brand,
-          type: type as
-            | "soft_structured_carrier"
-            | "ring_sling"
-            | "woven_wrap"
-            | "stretch_wrap"
-            | "meh_dai_half_buckle"
-            | "onbuhimo",
-          model: String(formData.get("model") || "").trim() || null,
-          size: String(formData.get("size") || "").trim() || null,
+          type: type as CarrierType,
+          model,
+          size,
         })
         .returning({ id: carriers.id });
 
       await tx.insert(carrierInstances).values({
         carrierId: newCarrier.id,
+        brand,
+        type: type as CarrierType,
+        model,
+        size,
         status: "available",
         serialNumber: String(formData.get("serialNumber") || "").trim() || null,
         replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
@@ -98,12 +106,29 @@ export async function createInstance(formData: FormData) {
     const carrierId = String(formData.get("carrierId") || "");
     if (!carrierId) return;
 
+    const [carrier] = await db
+      .select({
+        brand: carriers.brand,
+        type: carriers.type,
+        model: carriers.model,
+        size: carriers.size,
+      })
+      .from(carriers)
+      .where(eq(carriers.id, carrierId))
+      .limit(1);
+
+    if (!carrier) return;
+
     const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
     const fallbackUrl = String(formData.get("imageUrl") || "").trim();
     const imageUrl = uploadedUrl ?? (fallbackUrl || null);
 
     await db.insert(carrierInstances).values({
       carrierId,
+      brand: carrier.brand,
+      type: carrier.type,
+      model: carrier.model,
+      size: carrier.size,
       status: "available",
       serialNumber: String(formData.get("serialNumber") || "") || null,
       replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
@@ -133,12 +158,31 @@ export async function createInstanceWithState(
       return { ok: false, error: "Select a carrier first." };
     }
 
+    const [carrier] = await db
+      .select({
+        brand: carriers.brand,
+        type: carriers.type,
+        model: carriers.model,
+        size: carriers.size,
+      })
+      .from(carriers)
+      .where(eq(carriers.id, carrierId))
+      .limit(1);
+
+    if (!carrier) {
+      return { ok: false, error: "Carrier not found." };
+    }
+
     const uploadedUrl = await uploadImage(formData, "imageFile", "instance");
     const fallbackUrl = String(formData.get("imageUrl") || "").trim();
     const imageUrl = uploadedUrl ?? (fallbackUrl || null);
 
     await db.insert(carrierInstances).values({
       carrierId,
+      brand: carrier.brand,
+      type: carrier.type,
+      model: carrier.model,
+      size: carrier.size,
       status: "available",
       serialNumber: String(formData.get("serialNumber") || "") || null,
       replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
@@ -172,45 +216,29 @@ export async function updateInstance(formData: FormData) {
     const brand = String(formData.get("brand") || "").trim();
     const type = String(formData.get("type") || "").trim();
 
-    await db.transaction(async (tx) => {
-      if (carrierId && brand && type) {
-        await tx
-          .update(carriers)
-          .set({
-            brand,
-            type: type as
-              | "soft_structured_carrier"
-              | "ring_sling"
-              | "woven_wrap"
-              | "stretch_wrap"
-              | "meh_dai_half_buckle"
-              | "onbuhimo",
-            model: String(formData.get("model") || "").trim() || null,
-            size: String(formData.get("size") || "").trim() || null,
-          })
-          .where(eq(carriers.id, carrierId));
-      }
-
-      await tx
-        .update(carrierInstances)
-        .set({
-          status: String(formData.get("status") || "available") as
-            | "available"
-            | "checked_out"
-            | "maintenance"
-            | "retired",
-          serialNumber: String(formData.get("serialNumber") || "").trim() || null,
-          qrCodeValue: String(formData.get("qrCodeValue") || "").trim() || null,
-          issues: String(formData.get("issues") || "").trim() || null,
-          material: String(formData.get("material") || "").trim() || null,
-          colorPattern: String(formData.get("colorPattern") || "").trim() || null,
-          conditionNotes: String(formData.get("conditionNotes") || "").trim() || null,
-          location: String(formData.get("location") || "").trim() || null,
-          replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
-          imageUrl,
-        })
-        .where(eq(carrierInstances.id, instanceId));
-    });
+    await db
+      .update(carrierInstances)
+      .set({
+        brand: brand || null,
+        type: (type || null) as CarrierType | null,
+        model: String(formData.get("model") || "").trim() || null,
+        size: String(formData.get("size") || "").trim() || null,
+        status: String(formData.get("status") || "available") as
+          | "available"
+          | "checked_out"
+          | "maintenance"
+          | "retired",
+        serialNumber: String(formData.get("serialNumber") || "").trim() || null,
+        qrCodeValue: String(formData.get("qrCodeValue") || "").trim() || null,
+        issues: String(formData.get("issues") || "").trim() || null,
+        material: String(formData.get("material") || "").trim() || null,
+        colorPattern: String(formData.get("colorPattern") || "").trim() || null,
+        conditionNotes: String(formData.get("conditionNotes") || "").trim() || null,
+        location: String(formData.get("location") || "").trim() || null,
+        replacementValueCents: parseDollarAmount(formData.get("replacementValue")),
+        imageUrl,
+      })
+      .where(eq(carrierInstances.id, instanceId));
 
     revalidatePath("/inventory");
     if (carrierId) {
@@ -235,13 +263,7 @@ export async function updateCarrier(formData: FormData) {
       .update(carriers)
       .set({
         brand,
-        type: type as
-          | "soft_structured_carrier"
-          | "ring_sling"
-          | "woven_wrap"
-          | "stretch_wrap"
-          | "meh_dai_half_buckle"
-          | "onbuhimo",
+        type: type as CarrierType,
         model: String(formData.get("model") || "").trim() || null,
         size: String(formData.get("size") || "").trim() || null,
       })

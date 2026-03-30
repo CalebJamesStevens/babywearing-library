@@ -44,10 +44,10 @@ export default async function InventoryCarrierPage({ params }: PageProps) {
     .orderBy(carrierInstances.createdAt);
   const instancesWithCarrier = instances.map((instance) => ({
     ...instance,
-    brand: carrier.brand,
-    model: carrier.model,
-    size: carrier.size,
-    type: carrier.type,
+    brand: instance.brand ?? carrier.brand,
+    model: instance.model ?? carrier.model,
+    size: instance.size ?? carrier.size,
+    type: instance.type ?? carrier.type,
   }));
   const carrierName = [carrier.brand, carrier.model, carrier.size].filter(Boolean).join(" · ");
 

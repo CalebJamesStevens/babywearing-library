@@ -1,4 +1,4 @@
-import { db, carrierInstances, carriers, checkouts, members, reviews } from "@babywearing/db";
+import { db, carrierInstances, carriers, checkouts, members, reviews, sql } from "@babywearing/db";
 import { and, eq } from "@babywearing/db";
 import { revalidatePath } from "next/cache";
 import { CheckoutForm } from "@/components/CheckoutForm";
@@ -23,10 +23,10 @@ export default async function CarrierDetailPage({ params }: PageProps) {
       instanceColorPattern: carrierInstances.colorPattern,
       conditionNotes: carrierInstances.conditionNotes,
       issues: carrierInstances.issues,
-      carrierBrand: carriers.brand,
-      carrierType: carriers.type,
-      carrierModel: carriers.model,
-      carrierSize: carriers.size,
+      carrierBrand: sql<string>`coalesce(${carrierInstances.brand}, ${carriers.brand})`,
+      carrierType: sql<string>`coalesce(${carrierInstances.type}, ${carriers.type})`,
+      carrierModel: sql<string | null>`coalesce(${carrierInstances.model}, ${carriers.model})`,
+      carrierSize: sql<string | null>`coalesce(${carrierInstances.size}, ${carriers.size})`,
       carrierDescription: carriers.description,
       carrierImage: carriers.imageUrl,
       videoUrl: carriers.videoUrl,
