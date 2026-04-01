@@ -13,6 +13,12 @@ import { requireAdmin } from "@/lib/require-admin";
 
 export const dynamic = "force-dynamic";
 
+type NeonUserRow = {
+  id: string;
+  email: string | null;
+  name: string | null;
+};
+
 export default async function CheckoutsPage() {
   await requireAdmin();
   const checkoutRows = await db
@@ -27,6 +33,7 @@ export default async function CheckoutsPage() {
       approvedLengthDays: checkouts.approvedLengthDays,
       memberId: members.id,
       memberUserId: members.userId,
+      memberContactEmail: members.contactEmail,
       carrierInstanceId: carrierInstances.id,
       carrierBrand: sql<string>`coalesce(${carrierInstances.brand}, ${carriers.brand})`,
       carrierModel: sql<string | null>`coalesce(${carrierInstances.model}, ${carriers.model})`,
@@ -38,6 +45,43 @@ export default async function CheckoutsPage() {
     .leftJoin(carrierInstances, eq(checkouts.carrierInstanceId, carrierInstances.id))
     .leftJoin(carriers, eq(carrierInstances.carrierId, carriers.id))
     .orderBy(checkouts.requestedAt);
+
+  const candidates = await db.execute(
+    sql<{ table_schema: string; table_name: string }>`
+      select table_schema, table_name
+      from information_schema.tables
+      where table_name in ('users', 'user')
+        and table_schema not in ('pg_catalog', 'information_schema')
+      order by table_schema, table_name`
+  );
+
+  let neonUsers: { rows: NeonUserRow[] } = { rows: [] };
+  for (const candidate of candidates.rows) {
+    try {
+      const columns = await db.execute(
+        sql<{ column_name: string }>`
+          select column_name
+          from information_schema.columns
+          where table_schema = ${candidate.table_schema}
+            and table_name = ${candidate.table_name}
+          order by ordinal_position`
+      );
+      const columnNames = columns.rows.map((column) => column.column_name);
+      const emailExpr = columnNames.includes("email") ? `"email"` : "null as email";
+      const nameExpr = columnNames.includes("name") ? `"name"` : "null as name";
+
+      neonUsers = await db.execute(
+        sql.raw(
+          `select "id", ${emailExpr}, ${nameExpr} from "${candidate.table_schema}"."${candidate.table_name}"`
+        ) as unknown as Parameters<typeof db.execute>[0]
+      );
+      break;
+    } catch {
+      // try next candidate
+    }
+  }
+
+  const neonUsersById = new Map(neonUsers.rows.map((user) => [user.id, user]));
 
   async function approveCheckout(formData: FormData) {
     "use server";
@@ -126,14 +170,33 @@ export default async function CheckoutsPage() {
               <details key={checkout.checkoutId} className="!border-b !border-slate-300 py-3">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {[checkout.carrierBrand, checkout.carrierModel, checkout.carrierSize]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {checkout.carrierType} · Member {checkout.memberUserId}
-                    </p>
+                    {(() => {
+                      const memberIdentity = checkout.memberUserId
+                        ? neonUsersById.get(checkout.memberUserId)
+                        : null;
+                      const memberName = memberIdentity?.name?.trim() || "Member";
+                      const memberEmail =
+                        memberIdentity?.email?.trim() ||
+                        checkout.memberContactEmail?.trim() ||
+                        null;
+
+                      return (
+                        <>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {[checkout.carrierBrand, checkout.carrierModel, checkout.carrierSize]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {checkout.carrierType}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {memberName}
+                            {memberEmail && memberEmail !== memberName ? ` · ${memberEmail}` : ""}
+                          </p>
+                        </>
+                      );
+                    })()}
                   </div>
                   <span
                     className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${

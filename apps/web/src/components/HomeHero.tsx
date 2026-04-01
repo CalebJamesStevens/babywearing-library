@@ -41,16 +41,12 @@ export default function HomeHero() {
   const isLoggedIn = Boolean(session?.user);
 
   return (
-    <section className="card-lg">
+    <section>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-3">
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Explore babywearing carriers
+            Explore carriers
           </h1>
-          <p className="text-sm text-slate-600">
-            Membership is $30/year and requires a consultation with our
-            educator or a library meetup visit.
-          </p>
           {!isLoggedIn && !loading ? (
             <div className="flex flex-col gap-2 sm:flex-row">
               <a className="btn-primary" href="/login">
@@ -61,18 +57,10 @@ export default function HomeHero() {
               </a>
             </div>
           ) : null}
-          {isLoggedIn && !loading ? (
-            <p className="text-sm text-emerald-700">
-              You&apos;re signed in. Browse the library and request a checkout.
-            </p>
-          ) : null}
         </div>
-        {!isLoggedIn && !loading ? (
-          <div className="rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
-            Questions? Email your librarian after logging in to request a
-            checkout.
-          </div>
-        ) : null}
+        <div className="text-sm text-slate-600">
+          Questions? Email Hannah at <a href="mailto:hannah@babysbreathbw.com" className="text-blue-500 underline">hannah@babysbreathbw.com</a>.
+        </div>
       </div>
     </section>
   );

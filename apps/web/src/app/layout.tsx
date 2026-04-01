@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   Babywearing Library
                 </p>
                 <p className="text-xs text-slate-500">
-                  Member-supported, $30/year with consultation or meetup
+                  Member-supported, starting at $30/year with consultation or meetup
                 </p>
               </div>
               <nav className="flex gap-2">
