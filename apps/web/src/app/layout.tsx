@@ -3,59 +3,69 @@ import "@neondatabase/auth/ui/css";
 import type { ReactNode } from "react";
 import AuthProvider from "@/components/AuthProvider";
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
+import LinkButton from "@/components/LinkButton";
 import ServiceWorker from "@/components/ServiceWorker";
 import SessionNav from "@/components/SessionNav";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata = {
   title: "Babywearing Library",
   description: "Carrier library for wraps, structured carriers, and ring slings.",
+  icons: {
+    apple: "/icon.svg",
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+  },
   manifest: "/manifest.webmanifest",
 };
 
 export const viewport = {
-  themeColor: "#4f46e5",
+  themeColor: "#F9F8F1",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+      <body className="bg-background">
         <AuthProvider>
-        <div className="min-h-screen">
-          <header className="border-b border-slate-200 bg-white">
-            <div className="container-app flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-base font-semibold text-slate-900">
-                  Babywearing Library
-                </p>
-                <p className="text-xs text-slate-500">
-                  Member-supported, starting at $30/year with consultation or meetup
-                </p>
+          <div className="flex min-h-dvh flex-col bg-background">
+            <header className="border-b border-primary bg-background">
+              <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-1">
+                  <p className="font-heading text-xl leading-tight font-medium sm:text-base">
+                    Babywearing Library
+                  </p>
+                  <p className="max-w-md text-base leading-snug text-muted-foreground sm:text-sm">
+                    Member-supported, starting at $30/year with consultation or meetup
+                  </p>
+                </div>
+                <nav className="hidden w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+                  <LinkButton href="/" variant="ghost" size="lg" className="w-full justify-center sm:w-auto">
+                    Library
+                  </LinkButton>
+                  <SessionNav />
+                </nav>
               </div>
-              <nav className="flex gap-2">
-                <a className="btn-ghost" href="/">
+            </header>
+            <main className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-6 overflow-y-auto px-4 py-6 sm:px-6 sm:pb-6 sm:overflow-visible">
+              <EmailVerificationBanner />
+              {children}
+            </main>
+            <nav className="shrink-0 border-t border-primary bg-background sm:hidden">
+              <div className="mx-auto flex w-full max-w-6xl items-center gap-2 px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+                <LinkButton href="/" variant="ghost" size="lg" className="flex-1">
                   Library
-                </a>
-                <SessionNav />
-              </nav>
-            </div>
-          </header>
-          <main className="container-app space-y-6 py-6 pb-20 sm:pb-6">
-            <EmailVerificationBanner />
-            {children}
-          </main>
-        </div>
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white sm:hidden">
-          <div className="container-app flex items-center justify-between gap-2 py-2">
-            <a className="btn-ghost w-full justify-center" href="/">
-              Library
-            </a>
-            <div className="w-full flex justify-center">
-              <SessionNav />
-            </div>
+                </LinkButton>
+                <div className="flex flex-1 justify-center">
+                  <SessionNav />
+                </div>
+              </div>
+            </nav>
           </div>
-        </nav>
-        <ServiceWorker />
+          <ServiceWorker />
         </AuthProvider>
       </body>
     </html>

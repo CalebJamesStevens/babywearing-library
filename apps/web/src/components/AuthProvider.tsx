@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { NeonAuthUIProvider } from "@neondatabase/auth/react";
+import { NeonAuthUIProvider } from "@neondatabase/auth/react/ui";
 import { authClient } from "@/lib/auth/client";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {

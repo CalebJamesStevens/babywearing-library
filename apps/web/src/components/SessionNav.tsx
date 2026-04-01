@@ -1,86 +1,42 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-
-type SessionResponse = {
-  session: {
-    id: string;
-    token: string;
-    userId: string;
-  };
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role?: string | null;
-  };
-};
+import { useEffect, useState } from "react";
+import { authClient, useSession } from "@/lib/auth/client";
+import LinkButton from "@/components/LinkButton";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SessionNav() {
-  const [session, setSession] = useState<SessionResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const pathname = usePathname();
+  const [hasMounted, setHasMounted] = useState(false);
+  const { data: session, isPending, refetch } = useSession();
 
-  const refreshSession = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/auth/get-session", { cache: "no-store" });
-      const data = await response.json();
-      if (data?.user) {
-        setSession(data as SessionResponse);
-      } else {
-        setSession(null);
-      }
-    } catch {
-      setSession(null);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    setHasMounted(true);
   }, []);
 
-  useEffect(() => {
-    refreshSession();
-  }, [pathname, refreshSession]);
-
-  useEffect(() => {
-    if (session?.user) return;
-    const interval = setInterval(() => {
-      refreshSession();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [session?.user, refreshSession]);
-
-  if (loading) {
-    return (
-      <button className="btn-secondary" type="button" disabled>
-        Loading…
-      </button>
-    );
+  if (!hasMounted || isPending) {
+    return <Skeleton className="h-9 w-28 rounded-lg" />;
   }
 
   if (!session?.user) {
     return (
-      <a className="btn-primary" href="/login">
+      <LinkButton href="/login" size="lg" className="w-full justify-center sm:w-auto">
         Member Login
-      </a>
+      </LinkButton>
     );
   }
 
   return (
-    <button
-      className="btn-secondary"
-      type="button"
+    <Button
+      variant="outline"
+      size="lg"
+      className="w-full justify-center sm:w-auto"
       onClick={async () => {
-        await fetch("/api/auth/sign-out", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        });
-        refreshSession();
+        await authClient.signOut();
+        await refetch();
       }}
     >
       Sign out
-    </button>
+    </Button>
   );
 }

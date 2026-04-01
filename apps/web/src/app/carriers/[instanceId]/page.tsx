@@ -1,15 +1,41 @@
 import { db, carrierInstances, carriers, checkouts, members, reviews, sql } from "@babywearing/db";
 import { and, eq } from "@babywearing/db";
 import { revalidatePath } from "next/cache";
+import { CircleAlertIcon, CircleCheckIcon, ExternalLinkIcon, Image as ImageIcon } from "lucide-react";
 import { CheckoutForm } from "@/components/CheckoutForm";
+import LinkButton from "@/components/LinkButton";
 import { auth } from "@/lib/auth/server";
+import {
+  buildCarrierName,
+  formatAvailabilityStatus,
+  formatCarrierType,
+  getAvailabilityBadgeVariant,
+} from "@/lib/carriers";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Separator } from "@/components/ui/separator";
 
 export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ instanceId: string }>;
 };
-
 export default async function CarrierDetailPage({ params }: PageProps) {
   const { data: session } = await auth.getSession();
   const { instanceId } = await params;
@@ -41,9 +67,19 @@ export default async function CarrierDetailPage({ params }: PageProps) {
 
   if (!row) {
     return (
-      <div className="rounded-2xl bg-white p-10 text-center text-ink/60">
-        Carrier not found.
-      </div>
+      <Empty className="border bg-card py-12">
+        <EmptyHeader>
+          <EmptyTitle>Carrier not found</EmptyTitle>
+          <EmptyDescription>
+            This carrier record is missing or no longer available in the library.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <LinkButton href="/" variant="outline" size="lg">
+            Back to library
+          </LinkButton>
+        </EmptyContent>
+      </Empty>
     );
   }
 
@@ -59,9 +95,18 @@ export default async function CarrierDetailPage({ params }: PageProps) {
     .limit(1);
 
   const available = row.instanceStatus === "available" && activeCheckout.length === 0;
-  const carrierName = [row.carrierBrand, row.carrierModel, row.carrierSize]
-    .filter(Boolean)
-    .join(" · ");
+  const availabilityStatus =
+    row.instanceStatus === "maintenance" || row.instanceStatus === "retired"
+      ? row.instanceStatus
+      : available
+        ? "available"
+        : "checked_out";
+  const carrierName = buildCarrierName({
+    brand: row.carrierBrand,
+    model: row.carrierModel,
+    size: row.carrierSize,
+  });
+  const imageUrl = row.instanceImage || row.carrierImage;
 
   const member = session?.user?.id
     ? await db
@@ -161,148 +206,197 @@ export default async function CarrierDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="card-lg">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-xs uppercase text-slate-500">
-              {(row.carrierType ?? "carrier").replaceAll("_", " ").replace("meh dai", "meh dai /")}
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              {carrierName}
-            </h1>
-            {row.instanceMaterial ? (
-              <p className="mt-2 text-sm text-slate-600">
-                Material: {row.instanceMaterial}
-              </p>
-            ) : null}
-            {row.instanceColorPattern ? (
-              <p className="mt-1 text-sm text-slate-600">
-                Color / pattern: {row.instanceColorPattern}
-              </p>
-            ) : null}
-            <p className="mt-3 text-sm text-slate-600">{row.carrierDescription}</p>
-            {row.issues ? (
-              <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Known issues: {row.issues}
-              </p>
-            ) : null}
-            {row.conditionNotes ? (
-              <p className="mt-3 text-sm text-slate-600">
-                Condition notes: {row.conditionNotes}
-              </p>
-            ) : null}
-          </div>
-          <div className="rounded-md border border-slate-200 px-4 py-3 text-right">
-            <p className="text-xs uppercase text-slate-500">Status</p>
-            <p className="text-base font-semibold text-slate-900">
-              {available ? "Available" : "Checked out"}
-            </p>
-          </div>
-        </div>
-        {(row.instanceImage || row.carrierImage) && (
-          <div className="mt-6 overflow-hidden rounded-md border border-slate-200 bg-white">
+    <div className="flex flex-col gap-8">
+      <Card className="pt-0">
+        {imageUrl && (
+          <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={row.instanceImage || row.carrierImage || ""}
+              src={imageUrl}
               alt={carrierName}
-              className="h-64 w-full object-cover"
+              className="h-[456px] w-full bg-muted/30 object-contain"
             />
-          </div>
+            <Separator />
+          </>
         )}
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div className="space-y-6">
-          <div className="card">
-            <h2 className="text-lg font-semibold text-slate-900">Safety guidance</h2>
-            <div className="mt-3 space-y-3 text-sm text-slate-600">
-              <p>{row.safetyInfo || "Safety information will be added soon."}</p>
-              {row.safetyTests ? (
-                <p>Manufacturer tests: {row.safetyTests}</p>
-              ) : null}
-              {row.recallInfo ? (
-                <p className="text-rose-700">Recalls: {row.recallInfo}</p>
-              ) : (
-                <p>No known recalls on file.</p>
-              )}
-              {row.manufacturerUrl ? (
-                <p>
-                  Manufacturer:{" "}
-                  <a className="text-indigo-600 hover:text-indigo-700" href={row.manufacturerUrl}>
-                    Visit site
-                  </a>
-                </p>
-              ) : null}
-            </div>
+        <CardHeader>
+          <CardDescription>{formatCarrierType(row.carrierType)}</CardDescription>
+          <CardTitle className="text-2xl">{carrierName}</CardTitle>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant={getAvailabilityBadgeVariant(availabilityStatus)}>
+              {formatAvailabilityStatus(availabilityStatus)}
+            </Badge>
+            {row.carrierSize ? <Badge variant="outline">Size {row.carrierSize}</Badge> : null}
+            {row.instanceMaterial ? <Badge variant="outline">{row.instanceMaterial}</Badge> : null}
+            {imageUrl ? (
+              <Badge variant="outline">
+                <ImageIcon data-icon="inline-start" />
+                Photo available
+              </Badge>
+            ) : null}
           </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {row.carrierDescription ? (
+            <p className="text-sm text-muted-foreground">{row.carrierDescription}</p>
+          ) : null}
+          {row.instanceColorPattern ? (
+            <p className="text-sm text-muted-foreground">
+              Color / pattern: {row.instanceColorPattern}
+            </p>
+          ) : null}
+          {row.conditionNotes ? (
+            <p className="text-sm text-muted-foreground">
+              Condition notes: {row.conditionNotes}
+            </p>
+          ) : null}
+          {row.issues ? (
+            <Alert>
+              <CircleAlertIcon />
+              <AlertTitle>Known issues</AlertTitle>
+              <AlertDescription>{row.issues}</AlertDescription>
+            </Alert>
+          ) : null}
+        </CardContent>
+      </Card>
 
-          <div className="card">
-            <h2 className="text-lg font-semibold text-slate-900">Reviews</h2>
-            {reviewRows.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-600">No reviews yet.</p>
-            ) : (
-              <ul className="mt-4 space-y-3 text-sm text-slate-600">
-                {reviewRows.map((review) => (
-                  <li key={review.id} className="rounded-md border border-slate-200 bg-white px-4 py-3">
-                    <p className="font-medium text-slate-900">
-                      {"★".repeat(review.rating)}
-                    </p>
-                    <p className="mt-1">{review.comment}</p>
-                  </li>
-                ))}
-              </ul>
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <div className="flex flex-col gap-6">
+            {(row.safetyInfo || row.safetyTests) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Safety guidance</CardTitle>
+              <CardDescription>
+                Review the current safety notes before requesting this carrier.
+              </CardDescription>
+            </CardHeader>
+              <CardContent className="flex flex-col gap-4 text-sm text-muted-foreground">
+                <p>{row.safetyInfo || "Safety information will be added soon."}</p>
+                {row.safetyTests ? <p>Manufacturer tests: {row.safetyTests}</p> : null}
+              </CardContent>
+            {row.manufacturerUrl ? (
+              <CardFooter>
+                <LinkButton
+                  href={row.manufacturerUrl}
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                  external
+                >
+                  <ExternalLinkIcon data-icon="inline-start" />
+                  Visit manufacturer site
+                </LinkButton>
+              </CardFooter>
+            ) : null}
+          </Card>
             )}
-          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Reviews</CardTitle>
+              <CardDescription>Feedback from library members.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {reviewRows.length === 0 ? (
+                <Empty className="border bg-muted/30 py-10">
+                  <EmptyHeader>
+                    <EmptyTitle>No reviews yet</EmptyTitle>
+                    <EmptyDescription>
+                      Be the first member to share feedback after a checkout.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {reviewRows.map((review) => (
+                    <Card key={review.id} size="sm">
+                      <CardHeader>
+                        <CardTitle>{"★".repeat(review.rating)}</CardTitle>
+                        <CardDescription>
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">{review.comment}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        <aside className="space-y-6">
-          <div className="card">
-            <h2 className="text-lg font-semibold text-slate-900">Checkout</h2>
-            {!session ? (
-              <p className="mt-3 text-sm text-slate-600">
-                You must be a member and logged in to request a checkout.
-              </p>
-            ) : !isActiveMember ? (
-              <p className="mt-3 text-sm text-slate-600">
-                Your membership is not active. Please update your membership to
-                request a checkout.
-              </p>
-            ) : hasPendingRequest ? (
-              <div className="mt-3 space-y-3">
-                <p className="text-sm text-amber-700">
-                  Your request is being reviewed.
-                </p>
-                <form action={cancelCheckout}>
-                  <input type="hidden" name="checkoutId" value={pendingRequestId} />
-                  <button className="btn-secondary" type="submit">
-                    Cancel request
-                  </button>
-                </form>
-              </div>
-            ) : null}
+        <aside className="flex flex-col gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Checkout</CardTitle>
+              <CardDescription>
+                Requests are reviewed by the library after your membership is confirmed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              {!session ? (
+                <Alert>
+                  <CircleAlertIcon />
+                  <AlertTitle>Sign in required</AlertTitle>
+                  <AlertDescription>
+                    You must be a member and logged in to request a checkout.
+                  </AlertDescription>
+                </Alert>
+              ) : !isActiveMember ? (
+                <Alert>
+                  <CircleAlertIcon />
+                  <AlertTitle>Membership inactive</AlertTitle>
+                  <AlertDescription>
+                    Update your membership before requesting a checkout.
+                  </AlertDescription>
+                </Alert>
+              ) : hasPendingRequest ? (
+                <>
+                  <Alert>
+                    <CircleAlertIcon />
+                    <AlertTitle>Request in review</AlertTitle>
+                    <AlertDescription>
+                      Your checkout request is currently being reviewed.
+                    </AlertDescription>
+                  </Alert>
+                  <form action={cancelCheckout}>
+                    <input type="hidden" name="checkoutId" value={pendingRequestId} />
+                    <Button type="submit" variant="outline" size="lg">
+                      Cancel request
+                    </Button>
+                  </form>
+                </>
+              ) : null}
 
-            {hasPendingRequest ? null : (
-              <CheckoutForm
-                action={requestCheckout}
-                available={available}
-                disabled={!session || !isActiveMember}
-              />
-            )}
-          </div>
+              {hasPendingRequest ? null : (
+                <CheckoutForm
+                  action={requestCheckout}
+                  available={available}
+                  disabled={!session || !isActiveMember}
+                />
+              )}
+            </CardContent>
+          </Card>
 
           {row.videoUrl ? (
-            <div className="card">
-              <h2 className="text-lg font-semibold text-slate-900">How-to video</h2>
-              <div className="mt-4 aspect-video overflow-hidden rounded-md border border-slate-200 bg-white">
-                <iframe
-                  src={row.videoUrl}
-                  className="h-full w-full"
-                  title="Carrier safety video"
-                  allowFullScreen
-                />
-              </div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>How-to video</CardTitle>
+                <CardDescription>Watch the manufacturer or safety walkthrough.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-hidden rounded-xl border">
+                  <iframe
+                    src={row.videoUrl}
+                    className="aspect-video w-full"
+                    title="Carrier safety video"
+                    allowFullScreen
+                  />
+                </div>
+              </CardContent>
+            </Card>
           ) : null}
         </aside>
       </section>

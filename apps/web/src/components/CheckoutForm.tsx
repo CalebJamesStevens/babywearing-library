@@ -1,7 +1,9 @@
 "use client";
 
 import { useTransition } from "react";
-import FormField from "@/components/FormField";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
   action: (formData: FormData) => void;
@@ -19,22 +21,25 @@ export function CheckoutForm({ action, disabled, available }: Props) {
         if (!confirm("Request this carrier checkout?")) return;
         startTransition(() => action(formData));
       }}
-      className="mt-4 space-y-3"
+      className="mt-4"
     >
-      <FormField label="Notes for the librarian">
-        <textarea
-          name="notes"
-          placeholder="Notes for the librarian (fit preferences, dates, etc.)"
-          className="textarea h-24"
-        />
-      </FormField>
-      <button
-        type="submit"
-        className="btn-primary w-full"
-        disabled={disabled || !available || isPending}
-      >
-        {available ? (isPending ? "Submitting..." : "Request checkout") : "Unavailable"}
-      </button>
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="checkout-notes">Notes for the librarian</FieldLabel>
+          <Textarea
+            id="checkout-notes"
+            name="notes"
+            placeholder="Notes for the librarian (fit preferences, dates, etc.)"
+            className="min-h-24"
+          />
+          <FieldDescription>
+            Share fit preferences, timing, or anything else the librarian should know.
+          </FieldDescription>
+        </Field>
+        <Button type="submit" size="lg" disabled={disabled || !available || isPending}>
+          {available ? (isPending ? "Submitting..." : "Request checkout") : "Unavailable"}
+        </Button>
+      </FieldGroup>
     </form>
   );
 }
